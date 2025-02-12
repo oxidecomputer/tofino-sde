@@ -24,6 +24,7 @@
 #include <dvm/dvm_intf.h>
 #include <lld/lld_err.h>
 #include <lld/lld_sku.h>
+#include <port_mgr/bf_fsm_if.h>
 #include <port_mgr/bf_port_if.h>
 #include <port_mgr/bf_tof2_serdes_if.h>
 #include <port_mgr/port_mgr_intf.h>

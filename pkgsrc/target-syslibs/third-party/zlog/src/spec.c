@@ -258,7 +258,11 @@ static int zlog_spec_write_ktid(zlog_spec_t * a_spec, zlog_thread_t * a_thread, 
 
 	/* don't need to get ktid again, as tmap_new_thread fetched it already */
 	/* and fork not change tid */
+#if __sun
+	return zlog_buf_append(a_buf, a_thread->event->tid_str, a_thread->event->tid_str_len);
+#else
 	return zlog_buf_append(a_buf, a_thread->event->ktid_str, a_thread->event->ktid_str_len);
+#endif
 }
 
 static int zlog_spec_write_level_lowercase(zlog_spec_t * a_spec, zlog_thread_t * a_thread, zlog_buf_t * a_buf)

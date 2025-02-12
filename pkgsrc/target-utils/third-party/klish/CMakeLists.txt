@@ -1,6 +1,8 @@
 include_directories(. target_utils)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_CONFIG_H=1 -DHAVE_LIB_EXPAT -DCLISH_PLUGIN_BUILTIN_LIBS=\"$CLISH_PLUGIN_BUILTIN_LIBS bfshell_plugin_$1.la\" -DCLISH_PLUGIN_BUILTIN_DEFS=\"$CLISH_PLUGIN_BUILTIN_DEFS CLISH_PLUGIN_INIT($1    );\" -DCLISH_PLUGIN_BUILTIN_LIST=\"$CLISH_PLUGIN_BUILTIN_LIST { \"$1\", bfshell_plugin_$1_init },\"") 
 add_definitions(-D_GNU_SOURCE)
+add_definitions(-D__EXTENSIONS__)
+add_definitions(-D__POSIX_PTHREAD_SEMANTICS)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-pedantic -Wno-error")
 
 add_library(clish_o OBJECT

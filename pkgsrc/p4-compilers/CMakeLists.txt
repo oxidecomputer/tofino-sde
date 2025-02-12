@@ -23,8 +23,7 @@ set(CMAKE_CXX_EXTENSIONS ON)
 set(ENABLE_BF_ASM TRUE)
 add_definitions("-DBAREFOOT_INTERNAL=1")
 add_definitions("-DHAVE_JBAY=1")
-set (P4C_USE_PREINSTALLED_ABSEIL ON CACHE BOOL "")
-set (P4C_USE_PREINSTALLED_PROTOBUF ON CACHE BOOL "")
+set (P4C_USE_PREINSTALLED_PROTOBUF OFF CACHE BOOL "")
 set (ENABLE_PROTOBUF_STATIC ON CACHE BOOL "")
 
 
@@ -45,6 +44,7 @@ set (ENABLE_P4C_GRAPHS OFF CACHE BOOL "")
 # Enable Unity builds for the compiler and bf-asm to speed up compilation.
 set(CMAKE_UNITY_BUILD_PREV ${CMAKE_UNITY_BUILD})
 set(CMAKE_UNITY_BUILD ON)
+include_directories(${RAPIDJSON_DIR})
 add_subdirectory(p4c)
 
 add_subdirectory(bf-asm)

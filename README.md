@@ -1,3 +1,31 @@
+# Support for Sidecar
+
+This repo contains a fork of Intel's SDE for Tofino.  It contains modifications
+to support building and running on Helios (Oxide's illumos distribution) and the
+Sidecar switch.
+
+The upstream SDE uses a suite of Python scripts to configure and build for a
+wide variety of Linux distros and Tofino family asics.  To build and package
+this fork you should simply run:
+
+```
+tofino-sde$ export SDE=`pwd`
+tofino-sde$ ./oxide/build.sh
+[lots of output]
+tofino-sde$ ./oxide/pakage.sh
+[lots of output]
+```
+
+On Helios, this should leave you with a `tofino-sde.p5p`, which can be used to
+build the Sidecar p4 binary on illumos and which can be installed on the Oxide
+rack.
+
+On Linux, you should end up with a `tofino-sde.deb`.  This can be used to build
+the Sidecar p4 binary on a debian/ubunto host, and which can be used to run that
+binary on the tofino simulator.  This linux build is only supported so we can
+run the `dendrite` packet tests in CI, and may be discontinued if/when the
+tofino model can be run on illumos.
+
 # Introduction
 
 Intel® P4 Studio Software Development Environment (SDE) is a set of packages for programming Intel’s line of programmable Ethernet Switches. The package also contains scripts for building and installing SDE. The fully automated script (`install.sh`) introduced in this release internally invokes the existing command line interface tool (`p4studio`) to ease the build and installation process. The following sections describe how to build, install, and run the Intel P4 Studio SDE.

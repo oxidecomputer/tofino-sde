@@ -28,11 +28,7 @@
 extern "C" {
 #endif
 
-#ifdef __KERNEL__
-#include <linux/stddef.h>
-#else
 #include <stddef.h>
-#endif
 
 /**
  * @addtogroup bf_sal-mem

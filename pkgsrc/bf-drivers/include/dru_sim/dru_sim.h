@@ -171,7 +171,7 @@ extern void dru_init_shm(dru_intf_t *dru_intf);
 
 extern int dru_init_mti(void);
 
-int dru_sim_init(int tcp_port_base, dru_sim_dma2virt_dbg_callback_fn fn);
+int dru_sim_init(char *model_ip, int tcp_port_base, dru_sim_dma2virt_dbg_callback_fn fn);
 void *dru_pcie_dma_service_thread_entry(void *arg);
 
 #endif

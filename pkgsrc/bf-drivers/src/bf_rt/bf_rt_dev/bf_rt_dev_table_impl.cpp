@@ -20,6 +20,7 @@
 
 #include "bf_rt_dev_table_impl.hpp"
 #include <bf_rt_common/bf_rt_init_impl.hpp>
+#include <bf_pm/bf_pm_fsm_common.h>
 #include <bf_pm/bf_pm_intf.h>
 #include "../bf_rt_port/bf_rt_port_mgr_intf.hpp"
 #include "bf_rt_dev_table_data_impl.hpp"

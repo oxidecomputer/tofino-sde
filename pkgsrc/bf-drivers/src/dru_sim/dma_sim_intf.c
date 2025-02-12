@@ -19,7 +19,12 @@
 
 
 #include <sched.h>
+
+#ifdef __sun
+#include <netinet/tcp.h>
+#else
 #include <linux/tcp.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,6 +36,11 @@
 #include <errno.h>
 
 #include <dru_sim/dru_sim.h>
+
+/* XXX: short-term fix to allow building in build on buildomat */
+#ifndef TCP_QUICKACK
+#define TCP_QUICKACK                    0x26
+#endif
 
 // Default TCP port base. Can be overridden by
 // command-line.
@@ -68,7 +78,7 @@ int create_server(int listen_port /*, int local_only*/) {
 
   // Prepare the sockaddr_in structure
   server.sin_family = AF_INET;
-  server.sin_addr.s_addr = htonl(INADDR_LOOPBACK);  //: htonl(INADDR_ANY);
+  server.sin_addr.s_addr = htonl(INADDR_ANY);
   server.sin_port = htons(listen_port);
 
   setsockopt(socket_desc,
@@ -140,12 +150,15 @@ retry:
 /*********************************************************************
  * init_comms
  *********************************************************************/
-void init_comms(int dru_mode /*0=cpu, 1=dru*/, int tcp_port_base) {
+void init_comms(int dru_mode /*0=cpu, 1=dru*/, char *model_ip, int tcp_port_base) {
   static int g_tcp_port_base = TCP_PORT_BASE_DEFAULT;
 
   /* Override the default TCP port base if a non-zero value is provided */
   if (tcp_port_base) {
     g_tcp_port_base = tcp_port_base;
+  }
+  if (model_ip) {
+    g_model_ip_address = model_ip;
   }
 
   if (dru_mode) {
@@ -402,7 +415,8 @@ unsigned int dma_sim_push_to_dru(pcie_msg_t *msg, int len) {
 }
 
 /* Initialize DMA simulation interface to the model */
-int dru_sim_init(int tcp_port_base, dru_sim_dma2virt_dbg_callback_fn fn) {
+int dru_sim_init(char *model_ip, int tcp_port_base,
+    dru_sim_dma2virt_dbg_callback_fn fn) {
 #ifndef UTEST
   int ret;
 
@@ -414,7 +428,7 @@ int dru_sim_init(int tcp_port_base, dru_sim_dma2virt_dbg_callback_fn fn) {
   }
 
   /* Set up sockets to the model for DMA messages */
-  init_comms(0, tcp_port_base);
+  init_comms(0, model_ip, tcp_port_base);
 
   /* initialize the DRU interface mode and fn pointers */
   dru_init_tcp(g_debug_mode,

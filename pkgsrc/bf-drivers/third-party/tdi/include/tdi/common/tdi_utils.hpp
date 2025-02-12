@@ -15,6 +15,9 @@
  */
 #ifndef _TDI_UTILS_HPP
 #define _TDI_UTILS_HPP
+#ifdef __sun
+#include <endian.h>
+#endif
 
 #include <queue>
 #include <mutex>

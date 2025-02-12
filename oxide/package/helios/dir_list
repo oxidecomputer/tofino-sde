@@ -1,0 +1,5 @@
+share/tofino_sds_fw/credo/firmware
+share/platforms/board-maps/oxide
+include/bf_pltfm
+include/bf_pltfm_types
+include/bf_qsfp

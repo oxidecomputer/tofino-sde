@@ -22,6 +22,7 @@
 #define pm_intf_h_included
 
 #include <port_mgr/bf_port_if.h>
+#include <bf_pm/bf_pm_fsm_common.h>
 #include "port_fsm/bf_pm_fsm_if.h"
 
 // Port Mgr application interface

@@ -29,6 +29,9 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include <arpa/inet.h>
+#ifdef __sun
+#include <endian.h>
+#endif
 #include <pipe_mgr/pipe_mgr_err.h>
 #include <pipe_mgr/pipe_mgr_intf.h>
 #include <pipe_mgr/pipe_mgr_config.h>

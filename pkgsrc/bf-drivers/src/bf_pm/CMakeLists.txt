@@ -3,6 +3,7 @@ project(libbf_pm VERSION 0.1 LANGUAGES C)
 add_library(bf_pm_o OBJECT
 pm_task.c
 pm.c
+bf_pm_fsm_common.c
 bf_pm_intf.c
 bf_pm_ucli.c
 bf_pm_tof3_ucli.c

@@ -23,6 +23,7 @@
 #include <bf_types/bf_types.h>
 #include <dvm/bf_dma_types.h>
 #include <dvm/bf_drv_intf.h>
+#include <bf_pm/bf_pm_fsm_common.h>
 #include <port_mgr/bf_port_if.h>
 #include "bf_pm_fsm_if.h"
 #include "../pm_log.h"
@@ -68,6 +69,12 @@
  * link training (bf_pm_fsm_an_default) and one for those that don't
  * (bf_pm_fsm_default).
  ************************************************************************/
+
+#if 0
+/*
+ * This definition is now in bf_pm_fsm_common.h.  The old cold has been left
+ * here to simplify future merges with upstream code
+ */
 
 /************************************************************************
  * bf_pm_fsm_st_to_str
@@ -129,6 +136,7 @@ char *bf_pm_fsm_state_to_str(bf_pm_fsm_st st) {
   }
   return "invalid";
 }
+#endif
 
 /************************************************************************
  * bf_pm_fsm_find_state

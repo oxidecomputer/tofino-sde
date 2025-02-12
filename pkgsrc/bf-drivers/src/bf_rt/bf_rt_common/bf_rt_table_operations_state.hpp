@@ -39,6 +39,10 @@ extern "C" {
 #include <unordered_map>
 #include <tuple>
 
+#ifdef __sun
+#include <illumos.h>
+#endif
+
 #include <bf_rt/bf_rt_table_operations.h>
 #include <bf_rt/bf_rt_table_operations.hpp>
 
@@ -56,7 +60,7 @@ void bfRtStateTableOperationsCallback(const bf_rt_target_t &dev_tgt,
   LOG_DBG("%s:%d Thread 0x%lx enters table operation client callback",
           __func__,
           __LINE__,
-          tid);
+          (long)tid);
   if (callback_cpp) {
     callback_cpp(dev_tgt, cookie);
   } else if (callback_c) {
@@ -66,13 +70,13 @@ void bfRtStateTableOperationsCallback(const bf_rt_target_t &dev_tgt,
     LOG_TRACE("%s:%d Thread 0x%lx no callback function to call",
               __func__,
               __LINE__,
-              tid);
+              (long) tid);
     return;
   }
   LOG_DBG("%s:%d Thread 0x%lx exits table operation client callback",
           __func__,
           __LINE__,
-          tid);
+          (long) tid);
 }
 
 }  // namespace
@@ -285,7 +289,7 @@ class BfRtStateTableOperationsPool {
           "table_id=%u)",
           __func__,
           __LINE__,
-          tid,
+          (long)tid,
           cb_pool_->getThreadsCount(),
           cb_pool_->getQueueSize(),
           table_id_);
@@ -299,7 +303,7 @@ class BfRtStateTableOperationsPool {
       LOG_DBG("%s:%d Thread 0x%lx executes callback, table_id=%u",
               __func__,
               __LINE__,
-              tid,
+              (long)tid,
               table_id_);
       bfRtStateTableOperationsCallback<T, U>(
           dev_tgt, callback_cpp, callback_c, cookie);

@@ -209,7 +209,9 @@ static ucli_status_t switchd_ucli_ucli__board_port_map__(ucli_context_t *uc) {
               lmap->tx_lane,
               lmap->rx_pn_swap,
               lmap->tx_pn_swap,
-              cmap->pack_pin_name[0] != '\0' ? cmap->pack_pin_name : "NA");
+              // NOTE: This cannot be NULL, it's declared at
+              // /home/bnaecker/bf_sde/pkgsrc/bf-drivers/bf_switchd/bf_hw_porting_config.h:101.
+              cmap->pack_pin_name);
         }
       }
     }

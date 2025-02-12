@@ -17,6 +17,9 @@
  *  SPDX-License-Identifier: Apache-2.0
  ******************************************************************************/
 
+#ifdef __sun
+#include <endian.h>
+#endif
 
 #include <tdi_common/tdi_utils.hpp>
 #include "tdi_entry_gen.hpp"

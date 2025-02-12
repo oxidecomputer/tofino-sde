@@ -24,6 +24,7 @@
 // Module includes
 #include <bf_types/bf_types.h>
 #include <tofino/bf_pal/bf_pal_pltfm_porting.h>
+#include <bf_pm/bf_pm_fsm_common.h>
 #include <bf_pm/bf_pm_intf.h>
 
 // Local includes

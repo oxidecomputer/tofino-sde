@@ -21,6 +21,13 @@
  *
  */
 
+/*
+ * To re-enable the zlog-based log implementation, the following #undef should
+ * be changed to #define.
+ */
+#undef INTERNAL_LOGGING
+#ifdef INTERNAL_LOGGING
+
 #include <assert.h>
 #include <config.h>
 #include <stdarg.h>
@@ -41,6 +48,7 @@
 #include "bf_sys_log_internal.h"
 #include <target-sys/bf_sal/bf_sys_log.h>
 
+const char *INVALID_STATE = "INVALID_STATE";
 /**
  * bf_sys_log implementation for linux userspace
  * using "TBD" library for tracing and zlog for logging
@@ -72,8 +80,7 @@ static const char zlog_cat_name[BF_MOD_MAX][32] = {
     "BF_SYS",  "BF_UTIL", "BF_LLD",  "BF_PIPE",   "BF_TM",  "BF_MC",
     "BF_PKT",  "BF_DVM",  "BF_PORT", "BF_AVAGO",  "BF_DRU", "BF_MAP",
     "BF_API",  "BF_SAI",  "BF_PI",   "BF_PLTFM",  "BF_PAL", "BF_PM",
-    "BF_KNET", "BF_BFRT", "BF_P4RT", "BF_SWITCHD", "KRNLMON", "OVSP4RT",
-    "INFRAP4D"};
+    "BF_KNET", "BF_BFRT", "BF_P4RT", "BF_SWITCHD"};
 
 int zlog_would_log_at_level(zlog_category_t *category, int level) {
   if (!category)
@@ -157,7 +164,7 @@ static int bf_sys_zlog_init(const char *arg1) {
   return 0;
 }
 
-int bf_sys_log_zlog_reconfig(const char *cfg_file_name) {
+int bf_sys_log_zlog_reconfig(char *cfg_file_name) {
   if (zlog_reload(cfg_file_name) != 0) {
     printf("error initializing bf_sys_log\n");
     return -1;
@@ -165,7 +172,7 @@ int bf_sys_log_zlog_reconfig(const char *cfg_file_name) {
   return 0;
 }
 
-zlog_category_t *bf_sys_log_get_cat(const char *category_name) {
+zlog_category_t *bf_sys_log_get_cat(char *category_name) {
   return (zlog_get_category(category_name));
 }
 
@@ -189,7 +196,7 @@ static int bf_sys_trace_init(int default_level) {
 /* arg1 - Path to logging config file.
  * arg2 - Trace level.
  * arg3 - Trace size. */
-int bf_sys_log_init(const void *arg1, const void *arg2, const void *arg3) {
+int bf_sys_log_init(void *arg1, void *arg2, void *arg3) {
   int err;
   (void)arg3;
 
@@ -369,3 +376,91 @@ int bf_sys_syslog_level_set(int bf_level) {
   }
   return (bf_sys_log_zlog_reconfig(zlog_cur_log_file));
 }
+
+#else /* INTERNAL_LOGGING */
+
+// To get vasprintf()
+
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdarg.h>
+#include <target-sys/bf_sal/bf_sys_log.h>
+
+/*
+ * Optional callback provided by the control plane binary linked with this
+ * library.
+ */
+#pragma weak bf_sys_log_callback
+
+int bf_sys_log_init(void *arg1, void *arg2, void *arg3) {
+	(void) arg1;
+	(void) arg2;
+	(void) arg3;
+
+	return (0);
+}
+
+void bf_sys_trace_level_set(int module, int bf_level) {
+	(void) module;
+	(void) bf_level;
+}
+
+int bf_sys_trace_get(uint8_t *buf, size_t size, size_t *len_written) {
+	if (buf == NULL || len_written == NULL)
+		return -1;
+
+	(void) size;
+	buf[0] = 0;
+	*len_written = 0;
+	return 0;
+}
+
+int bf_sys_trace_reset(void) { return 0; }
+
+int bf_sys_log_level_set(int module, int output, int bf_level) {
+	(void) module;
+	(void) output;
+	(void) bf_level;
+
+	return (0);
+}
+
+int bf_sys_log_is_log_enabled(int module, int level) {
+	(void) module;
+	(void) level;
+	return (0);
+}
+
+int bf_sys_syslog_level_set(int bf_level) {
+	(void) bf_level;
+	return (0);
+}
+
+/*
+ * When built for external logging, this is the only meaningful routine.  The
+ * remaining config-related functionality is within the purview of the external
+ * logging mechanism.
+ */
+int bf_sys_log_and_trace(bf_log_modules_t module,
+    bf_log_levels_t level, const char *format, ...) {
+	char *msg;
+
+	if (module >= BF_MOD_MAX)
+		return -1;
+	if (level < 0)
+		return -1;
+
+	va_list v;
+	va_start(v, format);
+	vasprintf(&msg, format, v);
+	va_end(v);
+
+	if (bf_sys_log_callback == NULL) {
+		printf("%s\n", msg);
+		return (0);
+	} else {
+		return bf_sys_log_callback(module, level, msg);
+	}
+}
+
+#endif /* INTERNAL_LOGGING */
