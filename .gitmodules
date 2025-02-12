@@ -1,3 +1,4 @@
 [submodule "pkgsrc/p4-compilers/p4c"]
 	path = pkgsrc/p4-compilers/p4c
-	url = https://github.com/p4lang/p4c
+	url = https://github.com/oxidecomputer/tofino-p4c
+	branch = nils

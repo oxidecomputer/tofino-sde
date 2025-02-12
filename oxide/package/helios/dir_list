@@ -1,0 +1,4 @@
+share/platforms/board-maps/oxide
+include/bf_pltfm
+include/bf_pltfm_types
+include/bf_qsfp

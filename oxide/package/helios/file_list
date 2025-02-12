@@ -1,0 +1,7 @@
+include/bf_pltfm_types/bf_pltfm_types.h
+include/bf_pltfm/bf_pltfm_bd_cfg.h
+include/bf_qsfp/bf_qsfp.h
+include/bf_qsfp/sff.h
+share/platforms/board-maps/oxide/sidecar_rev_a.csv
+share/platforms/board-maps/oxide/sidecar_rev_b.csv
+lib/libpltfm_mgr.so

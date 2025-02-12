@@ -1,0 +1,9 @@
+Source: bf-sde
+Maintainer: Nils Nieuwejaar <nils@oxidecomputer.com>
+Section: misc
+Priority: optional
+Package: bf-sde
+Version: _version_
+Architecture: amd64
+Depends: 
+Description: Tofino SDE bits needed to run the dataplane

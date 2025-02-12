@@ -1,0 +1,3 @@
+set name=pkg.fmri value=FMRI
+set name=pkg.description value="Subset of the Intel Tofino SDE"
+set name=pkg.summary value="Subset of the Intel Tofino SDE"
