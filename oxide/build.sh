@@ -8,7 +8,7 @@ function illumos_fixup_cmake {
 	/usr/bin/sed -i  "
         s/^CMAKE_CXX_FLAGS:STRING=$/CMAKE_CXX_FLAGS:STRING=-D__EXTENSIONS__/;
         s/^CMAKE_C_FLAGS:STRING=$/CMAKE_C_FLAGS:STRING=-D__EXTENSIONS__ -D_POSIX_PTHREAD_SEMANTICS/ ;
-        s/^CMAKE_EXE_LINKER_FLAGS:STRING=$/CMAKE_EXE_LINKER_FLAGS:STRING=-lnsl -lsocket/ " \
+        s/^CMAKE_EXE_LINKER_FLAGS:STRING=$/CMAKE_EXE_LINKER_FLAGS:STRING=-lnsl -lsocket/ "  \
         ${SDE}/build/CMakeCache.txt
 
 }
@@ -16,15 +16,37 @@ function illumos_fixup_cmake {
 function configure_build {
 	# We only want to build the sidecar code on helios
 if [ $ILLUMOS -eq 0 ]; then
-	BSP=""
+	BSP=OFF
 else
-	BSP="bsp"
+	BSP=ON
 fi
 
-	cd $SDE/p4studio
-	./p4studio configure asic ^tofino tofino2 bfrt ^thrift-driver ^grpc \
-                ^bfrt-generic-flags ^thrift-diags ^bf-diags ^thrift-switch  \
-                ^switch ^sai ^tcmalloc ^bf-python ^kernel-modules ${BSP}
+	cd ${SDE}/build
+	cmake $SDE \
+		-DASIC=ON  \
+		-DTOFINO=OFF \
+		-DTOFINO2=ON \
+		-DBFRT=ON \
+		-DTHRIFT-DRIVER=OFF \
+		-DGRPC=OFF \
+		-DBFRT-GENERIC-FLAGS=OFF \
+		-DTHRIFT-DIAGS=OFF \
+		-DBF-DIAGS=OFF \
+		-DTHRIFT-SWITCH=OFF \
+		-DSWITCH=OFF \
+		-DSAI=OFF \
+		-DTCMALLOC=OFF \
+		-DBF-PYTHON=OFF \
+		-DKERNEL-MODULES=OFF \
+		-DBSP=$BSP \
+		-DP4C_USE_PREINSTALLED_ABSEIL=OFF  \
+		-DP4C_USE_PREINSTALLED_PROTBUF=OFF  \
+		-DUSE_PREINSTALLED_PROTBUF=OFF  \
+		-DBoost_INCLUDE_DIR=/opt/ooce/boost/include  \
+		-DBoost_USE_STATIC_RUNTIME=ON  \
+		-DCMAKE_BUILD_TYPE='Release' \
+		-DCMAKE_LINKER='lld' \
+		-DCMAKE_INSTALL_PREFIX=$SDE/install
 }
 
 function build {
@@ -37,21 +59,19 @@ function build {
 
 
 function usage() {
-	printf "$0 [-h] [-v <version>] [-j <jobs>] [-s <sde_tarball>]\n"
-	printf "    -h\tThis message\n"
-	printf "    -j\tTell (g)make how many jobs to spawn\n"
+	printf "$0 [-h] [-v <version>] [-j <jobs>]\n"
+	printf "    -h \tThis message\n"
+	printf "    -j \tTell (g)make how many jobs to spawn\n"
 }
 
 function install_packages() {
-	pfexec pkg install protobuf
+	pfexec pkg install bdw-gc pyinstaller # protobuf
+	pip3 install jsl
 }
 
-if [ x"${SDE}" == x ]; then
-	export SDE=`git rev-parse --show-toplevel`
-	echo Using SDE at git root: ${SDE}
-else
-	echo Using SDE from environment: ${SDE}
-fi
+export SDE=`git rev-parse --show-toplevel`
+echo Building SDE at git root: ${SDE}
+mkdir ${SDE}/build || echo ${SDE}/build already exists
 
 export JOBS=8
 while getopts hs:j:v: opt; do
@@ -69,15 +89,16 @@ done
 if [ `uname -s` == SunOS ]; then
 	export ILLUMOS=1
 	export MAKE=gmake
-	export PATH=${PATH}:/usr/lib/python3.11/bin
+	export PATH=${PATH}:/usr/lib/python3.11/bin:/usr/gnu/bin/:~/.local/bin
 else
 	export ILLUMOS=0
 	export MAKE=make
 	alias gmake=make
 fi
 
+# pfexec pkg install boost
 configure_build
 
-[ $ILLUMOS -eq 1 ] && illumos_fixup_cmake
+# [ $ILLUMOS -eq 1 ] && illumos_fixup_cmake
 
 build

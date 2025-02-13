@@ -60,6 +60,7 @@ endif()
 if (ENABLE_BAREFOOT_INTERNAL)
   add_definitions("-DBAREFOOT_INTERNAL=1")
 endif()
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 message(STATUS "P4C ${P4C_SOURCE_DIR}")
 macro(get_schema_version schema_file schema_var)

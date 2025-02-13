@@ -9,8 +9,10 @@
 #ifndef __zlog_event_h
 #define __zlog_event_h
 
-#include <sys/types.h>  /* for pid_t */
+typedef	long	time_t;		/* time of day in seconds */
+typedef long    suseconds_t;
 #include <sys/time.h>   /* for struct timeval */
+#include <sys/types.h>  /* for pid_t */
 #include <pthread.h>    /* for pthread_t */
 #include <stdarg.h>     /* for va_list */
 #include "zc_defs.h"
