@@ -24,13 +24,145 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#ifndef __sun
 #include <linux/if_ether.h>
+#endif
 #include <stdlib.h>
 #include <unistd.h>
 #include <knet_mgr/bf_knet_if.h>
 #include "knet_mgr_log.h"
 
-static inline bf_status_t bf_knet_status_to_status(
+#ifdef __sun
+
+#undef NDEBUG
+#include <assert.h>
+
+#define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+
+bool bf_knet_module_is_inited() {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+bf_status_t bf_knet_cpuif_ndev_add(const char *UNUSED(cpuif_netdev_name),
+                                   char *UNUSED(cpuif_knetdev_name),
+                                   bf_knet_cpuif_t *UNUSED(knet_cpuif_id)) {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+bf_status_t bf_knet_cpuif_list_get(bf_knet_cpuif_list_t *const UNUSED(cpuif_list),
+                                   bf_knet_count_t *const UNUSED(cpuif_count)) {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+bf_status_t bf_knet_cpuif_ndev_delete(const bf_knet_cpuif_t UNUSED(knet_cpuif_id)) {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+bf_status_t bf_knet_hostif_kndev_add(const bf_knet_cpuif_t UNUSED(knet_cpuif_id),
+                                     bf_knet_hostif_knetdev_t *UNUSED(hostif_knetdev)) {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+bf_status_t bf_knet_hostif_list_get(const bf_knet_cpuif_t UNUSED(knet_cpuif_id),
+                                    bf_knet_hostif_list_t *const UNUSED(hostif_list),
+				    bf_knet_count_t *const UNUSED(hostif_count)) {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+bf_status_t bf_knet_hostif_kndev_delete(const bf_knet_cpuif_t UNUSED(knet_cpuif_id),
+                                        const bf_knet_hostif_t UNUSED(knet_hostif_id)) {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+bf_status_t bf_knet_rx_filter_add(const bf_knet_cpuif_t UNUSED(knet_cpuif_id),
+                                 bf_knet_rx_filter_t *UNUSED(rx_filter)) {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+bf_status_t bf_knet_rx_filter_delete(const bf_knet_cpuif_t UNUSED(knet_cpuif_id),
+                                    const bf_knet_filter_t UNUSED(filter_id)) {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+bf_status_t bf_knet_rx_filter_get(const bf_knet_cpuif_t UNUSED(knet_cpuif_id),
+                                 const bf_knet_filter_t UNUSED(filter_id),
+                                 bf_knet_rx_filter_t *UNUSED(rx_filter),
+                                 bf_knet_count_t UNUSED(rx_mutation_count)) {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+bf_status_t bf_knet_rx_filter_list_get(const bf_knet_cpuif_t UNUSED(knet_cpuif_id),
+                                      bf_knet_filter_t *const UNUSED(filter_list),
+                                      bf_knet_count_t *const UNUSED(filter_count)) {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+bf_status_t bf_knet_tx_action_add(const bf_knet_cpuif_t UNUSED(knet_cpuif_id),
+                                 const bf_knet_hostif_t UNUSED(knet_hostif_id),
+                                 bf_knet_tx_action_t *const UNUSED(tx_action)) {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+bf_status_t bf_knet_tx_action_delete(const bf_knet_cpuif_t UNUSED(knet_cpuif_id),
+                                    const bf_knet_hostif_t UNUSED(knet_hostif_id)) {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+bf_status_t bf_knet_get_cpuif_cnt(bf_knet_count_t *const UNUSED(obj_count)) {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+bf_status_t bf_knet_get_hostif_cnt(const bf_knet_cpuif_t UNUSED(knet_cpuif_id),
+                                  bf_knet_count_t *const UNUSED(obj_count)) {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+bf_status_t bf_knet_get_rx_filter_cnt(const bf_knet_cpuif_t UNUSED(knet_cpuif_id),
+                                     bf_knet_count_t *const UNUSED(obj_count)) {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+bf_status_t bf_knet_get_rx_mutation_cnt(const bf_knet_cpuif_t UNUSED(knet_cpuif_id),
+                                       const bf_knet_filter_t UNUSED(filter_id),
+                                       bf_knet_count_t *const UNUSED(obj_count)) {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+bf_status_t bf_knet_get_tx_mutation_cnt(const bf_knet_cpuif_t UNUSED(knet_cpuif_id),
+                                       const bf_knet_hostif_t UNUSED(hostif_id),
+                                       bf_knet_count_t *const UNUSED(obj_count)) {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+bf_status_t bf_knet_tx_action_get(const bf_knet_cpuif_t UNUSED(knet_cpuif_id),
+                                 const bf_knet_hostif_t UNUSED(knet_hostif_id),
+                                 bf_knet_tx_action_t *UNUSED(tx_action),
+                                 bf_knet_count_t UNUSED(tx_mutation_count)) {
+	assert(0);
+	return BF_NOT_SUPPORTED;
+}
+
+#else //__sun
+
+static iline bf_status_t bf_knet_status_to_status(
     bf_knet_status_t knet_status) {
   bf_status_t status = BF_SUCCESS;
 
@@ -67,6 +199,10 @@ static inline bf_status_t bf_knet_status_to_status(
 }
 
 bool bf_knet_module_is_inited() {
+#ifdef __sun
+	assert(0);
+	return BF_NOT_SUPPORTED;
+#else
   int sockfd;
   struct ifreq cpuifreq;
   bf_knet_msg_t mod_info;
@@ -114,11 +250,16 @@ bool bf_knet_module_is_inited() {
 
   close(sockfd);
   return true;
+#endif
 }
 
 bf_status_t bf_knet_cpuif_ndev_add(const char *cpuif_netdev_name,
                                    char *cpuif_knetdev_name,
                                    bf_knet_cpuif_t *knet_cpuif_id) {
+#ifdef __sun
+	assert(0);
+	return BF_NOT_SUPPORTED;
+#else
   int sockfd;
   struct ifreq cpuifreq;
   bf_knet_msg_t cpuif_config;
@@ -176,10 +317,15 @@ ret:
   close(sockfd);
   return bf_knet_status_to_status(
       ((bf_knet_msg_t *)(cpuifreq.ifr_data))->hdr.status);
+#endif // __sun
 }
 
 bf_status_t bf_knet_cpuif_list_get(bf_knet_cpuif_list_t *const cpuif_list,
                                    bf_knet_count_t *const cpuif_count) {
+#ifdef __sun
+	assert(0);
+	return BF_NOT_SUPPORTED;
+#else
   int sockfd;
   struct ifreq cpuifreq;
   bf_knet_msg_t cpuif_config;
@@ -232,6 +378,7 @@ bf_status_t bf_knet_cpuif_list_get(bf_knet_cpuif_list_t *const cpuif_list,
   *cpuif_count = ((bf_knet_msg_cpuif_list_get_t *)(cpuifreq.ifr_data))->size;
   return bf_knet_status_to_status(
       ((bf_knet_msg_t *)(cpuifreq.ifr_data))->hdr.status);
+#endif __sun
 }
 
 bf_status_t bf_knet_cpuif_ndev_delete(const bf_knet_cpuif_t knet_cpuif_id) {
@@ -1049,3 +1196,5 @@ bf_status_t bf_knet_tx_action_get(const bf_knet_cpuif_t knet_cpuif_id,
   return bf_knet_status_to_status(
       ((bf_knet_msg_t *)(cpuifreq.ifr_data))->hdr.status);
 }
+
+#endif // __sun

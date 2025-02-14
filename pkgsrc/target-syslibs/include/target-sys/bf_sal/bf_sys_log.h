@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright(c) 2021-2024 Intel Corporation.
+ * Copyright(c) 2021 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this software except as stipulated in the License.
@@ -40,49 +40,7 @@ extern "C" {
  * @{
  */
 
-/*!
- * Macros BF LOG LEVELS
- */
-#define BF_LOG_NONE 0
-#define BF_LOG_CRIT (BF_LOG_NONE + 1)
-#define BF_LOG_ERR (BF_LOG_NONE + 2)
-#define BF_LOG_WARN (BF_LOG_NONE + 3)
-#define BF_LOG_INFO (BF_LOG_NONE + 4)
-#define BF_LOG_DBG (BF_LOG_NONE + 5)
-
-#define BF_LOG_MAX (BF_LOG_DBG) /* keep this the last */
-
-/*!
- * Macros BF Log Modules
- */
-#define BF_MOD_START 0
-#define BF_MOD_SYS (BF_MOD_START + 0)
-#define BF_MOD_UTIL (BF_MOD_START + 1)
-#define BF_MOD_LLD (BF_MOD_START + 2)
-#define BF_MOD_PIPE (BF_MOD_START + 3)
-#define BF_MOD_TM (BF_MOD_START + 4)
-#define BF_MOD_MC (BF_MOD_START + 5)
-#define BF_MOD_PKT (BF_MOD_START + 6)
-#define BF_MOD_DVM (BF_MOD_START + 7)
-#define BF_MOD_PORT (BF_MOD_START + 8)
-#define BF_MOD_AVAGO (BF_MOD_START + 9)
-#define BF_MOD_DRU (BF_MOD_START + 10)
-#define BF_MOD_MAP (BF_MOD_START + 11)
-#define BF_MOD_SWITCHAPI (BF_MOD_START + 12)
-#define BF_MOD_SAI (BF_MOD_START + 13)
-#define BF_MOD_PI (BF_MOD_START + 14)
-#define BF_MOD_PLTFM (BF_MOD_START + 15)
-#define BF_MOD_PAL (BF_MOD_START + 16)
-#define BF_MOD_PM (BF_MOD_START + 17)
-#define BF_MOD_KNET (BF_MOD_START + 18)
-#define BF_MOD_BFRT (BF_MOD_START + 19)
-#define BF_MOD_P4RT (BF_MOD_START + 20)
-#define BF_MOD_SWITCHD (BF_MOD_START + 21)
-#define KRNLMON (BF_MOD_START + 22)
-#define OVSP4RT (BF_MOD_START + 23)
-#define INFRAP4D (BF_MOD_START + 24)
-
-#define BF_MOD_MAX (INFRAP4D + 1)
+#include <target-sys/log_common.h>
 
 /*!
  * Macros BF Lo Destination flag bit masks
@@ -106,7 +64,7 @@ extern "C" {
  * @return
  *  0 on Sucess, -1 on error
  */
-int bf_sys_log_init(const void *arg1, const void *arg2, const void *arg3);
+int bf_sys_log_init(void *arg1, void *arg2, void *arg3);
 
 /**
  * close bf_sys_log subsystem
@@ -221,10 +179,12 @@ int bf_sys_trace_reset(void);
  *  0 on Sucess, -1 on error
  */
 #ifdef BF_SYS_LOG_FORMAT_CHECK
-int bf_sys_log_and_trace(int module, int bf_level, const char *format, ...)
+int bf_sys_log_and_trace(bf_log_modules_t module,
+    bf_log_levels_t level, const char *format, ...)
     __attribute__((format(printf, 3, 4)));
 #else
-int bf_sys_log_and_trace(int module, int bf_level, const char *format, ...);
+int bf_sys_log_and_trace(bf_log_modules_t module,
+    bf_log_levels_t level, const char *format, ...);
 #endif
 
 /**

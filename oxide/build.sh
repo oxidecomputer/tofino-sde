@@ -27,26 +27,30 @@ fi
 		-DTOFINO=OFF \
 		-DTOFINO2=ON \
 		-DBFRT=ON \
-		-DTHRIFT-DRIVER=OFF \
-		-DGRPC=OFF \
 		-DBFRT-GENERIC-FLAGS=OFF \
+		-DTHRIFT-DRIVER=OFF \
 		-DTHRIFT-DIAGS=OFF \
-		-DBF-DIAGS=OFF \
 		-DTHRIFT-SWITCH=OFF \
+		-DGRPC=OFF \
+		-DBF-DIAGS=OFF \
 		-DSWITCH=OFF \
 		-DSAI=OFF \
 		-DTCMALLOC=OFF \
 		-DBF-PYTHON=OFF \
 		-DKERNEL-MODULES=OFF \
 		-DBSP=$BSP \
-		-DP4C_USE_PREINSTALLED_ABSEIL=OFF  \
+		-DRAPIDJSON_DIR=$RAPIDJSON_DIR/include \
+		-DP4C_USE_PREINSTALLED_ABSEIL=ON  \
 		-DP4C_USE_PREINSTALLED_PROTBUF=OFF  \
 		-DUSE_PREINSTALLED_PROTBUF=OFF  \
-		-DBoost_INCLUDE_DIR=/opt/ooce/boost/include  \
+		-DBoost_INCLUDE_DIRS=/opt/ooce/boost/include  \
 		-DBoost_USE_STATIC_RUNTIME=ON  \
 		-DCMAKE_BUILD_TYPE='Release' \
 		-DCMAKE_LINKER='lld' \
-		-DCMAKE_INSTALL_PREFIX=$SDE/install
+		-DCMAKE_INSTALL_PREFIX=$SDE/install \
+		-DCMAKE_CXX_FLAGS="-D__EXTENSIONS__ -I${SDE}/oxide/rapidjson/include" \
+		-DCMAKE_C_FLAGS="-D__EXTENSIONS__ -D_POSIX_PTHREAD_SEMANTICS" \
+		-DCMAKE_EXE_LINKER_FLAGS="-lnsl -lsocket"
 }
 
 function build {
@@ -94,6 +98,11 @@ else
 	export ILLUMOS=0
 	export MAKE=make
 	alias gmake=make
+fi
+
+RAPIDJSON_DIR=${SDE}/oxide/rapidjson
+if [ ! -d $RAPIDJSON_DIR ]; then
+	(cd ${SDE}/oxide ; git clone https://github.com/Tencent/rapidjson.git)
 fi
 
 # pfexec pkg install boost

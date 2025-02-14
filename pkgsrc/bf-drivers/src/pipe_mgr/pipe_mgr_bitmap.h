@@ -23,7 +23,12 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#ifdef __sun
+#include <endian.h>
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
+#else
 #include <sys/param.h>  // for MIN()
+#endif // __sun
 #include <pipe_mgr/pipe_mgr_config.h>
 
 /** atomic bitmap storage type. */

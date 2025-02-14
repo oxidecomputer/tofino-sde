@@ -41,7 +41,11 @@ typedef void *(*thread_fn)(void *);
 /**
  * OS/kernel abstracted thread typedef
  */
+#ifdef __sun__
+typedef int bf_sys_thread_t;
+#else
 typedef void *bf_sys_thread_t;
+#endif
 
 /**
  * create a thread

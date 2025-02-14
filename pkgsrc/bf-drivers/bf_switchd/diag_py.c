@@ -31,7 +31,9 @@
 #include <inttypes.h>  //strlen
 
 #include <pthread.h>
+#ifndef __sun
 int pthread_setname_np(pthread_t *thread, const char *name);
+#endif
 
 #include <bf_types/bf_types.h>
 

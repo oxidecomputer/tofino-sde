@@ -28,6 +28,10 @@
 #ifndef _PIPE_MGR_ALPM_H
 #define _PIPE_MGR_ALPM_H
 
+#ifdef __sun
+#include <illumos.h>
+#endif
+
 /* Module header files */
 #include <target-utils/id/id.h>
 #include <target-utils/map/map.h>

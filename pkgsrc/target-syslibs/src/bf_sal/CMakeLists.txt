@@ -1,5 +1,11 @@
 project(libbf_sal VERSION 0.1 LANGUAGES C)
 
+if (CMAKE_HOST_SOLARIS)
+	set(DMA_SOURCE  "linux_usr/bf_sys_illumos_dma.c")
+else()
+	set(DMA_SOURCE  "linux_usr/bf_sys_dma_hugepages.c")
+endif()
+
 include_directories(${CMAKE_INSTALL_PREFIX}/include)
 add_library(bf_sal_o OBJECT
 bf_sys_ver.c
@@ -11,7 +17,8 @@ linux_usr/bf_sys_timer.c
 linux_usr/bf_sys_thread.c
 linux_usr/bf_sys_log.c
 linux_usr/bf_sys_log_internal.h
-linux_usr/bf_sys_dma_hugepages.c)
+${DMA_SOURCE}
+)
 
 target_compile_options(bf_sal_o PRIVATE  -Wno-pedantic)
 

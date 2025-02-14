@@ -60,7 +60,11 @@ endif()
 if (ENABLE_BAREFOOT_INTERNAL)
   add_definitions("-DBAREFOOT_INTERNAL=1")
 endif()
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+
+# No idea why the include_directories() isn't getting the job done, but
+# we need to explicitly add the -I here.
+add_compile_options("-I${Boost_INCLUDE_DIRS}")
+include_directories(${Boost_INCLUDE_DIRS})
 
 message(STATUS "P4C ${P4C_SOURCE_DIR}")
 macro(get_schema_version schema_file schema_var)

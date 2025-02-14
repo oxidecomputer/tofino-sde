@@ -23,7 +23,11 @@
  */
 
 #include <arpa/inet.h>
+#ifdef __sun
+#include <illumos.h>
+#else
 #include <byteswap.h>
+#endif // __sun
 #include <ctype.h>
 #include <errno.h>
 #include <inttypes.h>

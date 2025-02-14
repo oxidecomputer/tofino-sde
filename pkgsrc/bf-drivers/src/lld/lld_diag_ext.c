@@ -21,6 +21,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
+#ifdef __sun
+#include <endian.h>
+#endif
 
 #include <lld/tof2_reg_drv_defs.h>
 #include <lld/tof3_reg_drv_defs.h>

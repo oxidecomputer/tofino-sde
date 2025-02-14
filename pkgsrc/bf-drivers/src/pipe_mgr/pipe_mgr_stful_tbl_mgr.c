@@ -20,6 +20,9 @@
 
 #include <sched.h>
 #include <dvm/bf_drv_intf.h>
+#ifdef __sun
+#include <limits.h>
+#endif
 #include <lld/bf_dma_if.h>
 #include <tofino_regs/tofino.h>
 #include "pipe_mgr_int.h"

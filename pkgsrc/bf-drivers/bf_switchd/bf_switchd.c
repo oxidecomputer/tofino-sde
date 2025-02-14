@@ -43,6 +43,10 @@
 #include <errno.h>
 #include <dirent.h>
 #include <sys/ioctl.h>
+#ifdef __sun
+#include <endian.h>
+#define ILLUMOS_UNUSED(expr) do { (void)(expr); } while (0)
+#endif
 
 /* <bf_syslib> includes */
 #include <target-sys/bf_sal/bf_sys_intf.h>
@@ -68,11 +72,17 @@
 #include <tofino/bf_pal/dev_intf.h>
 #include <tofino/bf_pal/pltfm_func_mgr.h>
 #include <tofino/bf_pal/pltfm_intf.h>
+#include <bf_pm/bf_pm_fsm_common.h>
 #include <bf_pm/bf_pm_intf.h>
 #include <bf_rt/bf_rt_init.h>
 /* Required for lld_sku API */
 #include <lld/lld_dr_if.h>
+
+#ifdef __sun
+#include <illumos.h>
+#else
 #include <kdrv/bf_kdrv/bf_ioctl.h>
+#endif
 
 /* Required for python shell */
 #include <lld/python_shell_mutex.h>
@@ -185,6 +195,7 @@ void start_credo_py_server(bool *local_only);
 void (*bf_fpga_reg_write32_fn)(int fd, uint32_t offset, uint32_t val);
 int (*bf_fpga_reg_read32_fn)(int fd, uint32_t offset, uint32_t *val);
 
+#ifndef __sun
 static int bf_switchd_sysfs_set(char *file_node,
                                 char *sysfs_fn,
                                 char *val,
@@ -225,20 +236,107 @@ static int bf_switchd_sysfs_get(char *file_node,
   close(fd);
   return ret;
 }
+#else // __sun
+
+static int
+get_pci_dev_id(char *devname, uint8_t *buf, ssize_t len)
+{
+	int fd, rval;
+	uint32_t devid;
+
+	fd = open(devname, O_RDONLY);
+	if (fd < 0) {
+		printf("failed to open %s: %s\n", devname, strerror(errno));
+		return (-1);
+	}
+
+	rval = ioctl(fd, BF_GET_PCI_DEVID, &devid);
+	if (rval < 0) {
+		printf("failed to get pci devid: %s\n", strerror(errno));
+	} else {
+		printf("ioctl() returned %d\n", devid);
+		snprintf((char *)buf, len, "%d", devid);
+	}
+	close(fd);
+
+	return (rval);
+}
+
+static char *
+test_device_name(char *name)
+{
+	char *path = NULL;
+	struct stat buf;
+
+	if ((stat(name, &buf) == 0) && S_ISCHR(buf.st_mode)) {
+		path = malloc(strlen(name) + 1);
+		sprintf(path, name);
+	}
+	return (path);
+}
+
+/* Find a single tofino device */
+static char *
+find_tofino_device()
+{
+	char *path = NULL;
+	DIR *dirp;
+	struct dirent *dp;
+
+	/*  On old kernels, the path is hardcoded to /dev/tofino */
+	if ((path = test_device_name("/dev/tofino")) != NULL)
+		return (path);
+
+	/* New kernels support multiple tofino devices in /dev/tofino/ */
+	if ((dirp = opendir("/dev/tofino")) == NULL)
+		return (NULL);
+
+	while ((dp = readdir(dirp)) != NULL) {
+		char tmp_name[256];
+		sprintf(tmp_name, "/dev/tofino/%s", dp->d_name);
+		if ((path = test_device_name(tmp_name)) != NULL)
+			break;
+	}
+
+	closedir(dirp);
+	return (path);
+}
+
+#endif // __sun
 
 static void bf_switchd_asic_set_pci_dev_id(switch_asic_t *bf_asic) {
   uint8_t buf[8];
-  int res;
+  int res = -1;
 
+#if __sun
+  char *path = find_tofino_device();
+
+  if (path == NULL) {
+    bf_sys_log_and_trace(BF_MOD_SWITCHD,
+                         BF_LOG_ERR,
+                         "ERROR unable to find tofino device");
+  } else {
+   if ((res = get_pci_dev_id(path, buf, 8)) < 0)
+    bf_sys_log_and_trace(BF_MOD_SWITCHD,
+                         BF_LOG_ERR,
+                         "ERROR getting ASIC pci device id for %s", path);
+   free(path);
+  }
+
+  if (res < 0)
+	  return;
+
+#else
   res = bf_switchd_sysfs_get(
       bf_asic->pcie_cfg.pci_sysfs_str, "device", buf, sizeof(buf));
   if (res == -1) {
     bf_sys_log_and_trace(BF_MOD_SWITCHD,
                          BF_LOG_ERR,
-                         "ERROR getting ASIC pci device id fpr %s",
+                         "ERROR getting ASIC pci device id for %s",
                          bf_asic->pcie_cfg.pci_sysfs_str);
     return;
   }
+#endif // __sun
   bf_asic->pci_dev_id = strtol((char *)buf, NULL, 0);
   bf_sys_log_and_trace(BF_MOD_SWITCHD,
                        BF_LOG_DBG,
@@ -611,7 +709,7 @@ static void bf_switchd_switchapi_lib_init(bf_dev_id_t dev_id) {
   int (*switchapi_init_fn)(int, int, char *, bool);
   int (*switchapi_start_srv_fn)(void);
   int (*switchapi_start_packet_driver_fn)();
-  int (*bf_switch_init_fn)(uint16_t, char *, char *, bool, char *, bool);
+  int (*bf_switch_init_fn)(uint16_t, char *, char *, bool, char *);
 
   /* Currently the switch libraries need to be initialized only once */
   if (dev_id != 0) {
@@ -635,8 +733,7 @@ static void bf_switchd_switchapi_lib_init(bf_dev_id_t dev_id) {
                         switchd_ctx->args.conf_file,
                         switchd_ctx->args.install_dir,
                         warm_boot,
-                        "/tmp/db.txt",
-                        switchd_ctx->args.kernel_pkt);
+                        "/tmp/db.txt");
     }
 
     *(pvoid_dl_t *)(&switchapi_init_fn) =
@@ -1029,10 +1126,6 @@ static void bf_switchd_ports_add_to_model(bf_dev_id_t dev_id) {
         if (sts == BF_SUCCESS && internal) continue;
         if (skip_mac_ports) continue;
         sts = bf_pal_port_add(dev_id, dev_port, BF_SPEED_10G, BF_FEC_TYP_NONE);
-        // to mark link-up
-        if (switchd_ctx->asic[dev_id].chip_family == BF_DEV_FAMILY_TOFINO3) {
-          bf_pal_port_enable(dev_id, dev_port);
-        }
       } else {
         sts = bf_port_add(dev_id, dev_port, BF_SPEED_10G, BF_FEC_TYP_NONE);
       }
@@ -1230,7 +1323,14 @@ static void bf_switchd_ports_add_to_asic(bf_dev_id_t dev_id) {
                   sts,
                   dev_id,
                   dev_port);
-            }
+            } else {
+              bf_sys_log_and_trace(
+                  BF_MOD_SWITCHD,
+                  BF_LOG_ERR,
+		  "port_added for dev_id=%d, dev_port %d\n",
+		  dev_id,
+		  dev_port);
+	    }
           }
         }
         break;
@@ -2321,7 +2421,7 @@ static bf_status_t bf_unmap_dev_tof3(int dev_id) {
     }
 
     if (pcie_map->dev_base_addr && pcie_map->dev_base_size) {
-      munmap(pcie_map->dev_base_addr, pcie_map->dev_base_size);
+      munmap((void *)pcie_map->dev_base_addr, pcie_map->dev_base_size);
     }
     pcie_map->dev_fd = -1;
   }
@@ -2364,7 +2464,7 @@ static bf_status_t bf_mmap_dev_tof3(int dev_id) {
         continue;
       }
     }
-    pcie_map->dev_base_addr = mmap(NULL,
+    pcie_map->dev_base_addr = (uint8_t *)mmap(NULL,
                                    pcie_map->dev_base_size,
                                    PROT_READ | PROT_WRITE,
                                    MAP_SHARED,
@@ -2416,7 +2516,7 @@ static bf_status_t bf_unmap_dev(bf_dev_id_t dev_id) {
   }
 
   if (pcie_map->dev_base_addr && pcie_map->dev_base_size) {
-    munmap(pcie_map->dev_base_addr, pcie_map->dev_base_size);
+    munmap((void *)pcie_map->dev_base_addr, pcie_map->dev_base_size);
   }
   pcie_map->dev_fd = -1;
   return BF_SUCCESS;
@@ -2454,6 +2554,14 @@ static bf_status_t bf_mmap_dev(bf_dev_id_t dev_id) {
       return BF_INVALID_ARG;
   }
 
+#ifdef __sun
+  char *tmp_name;
+  if ((tmp_name = find_tofino_device()) == NULL)
+	  return (BF_INVALID_ARG);
+
+  snprintf(bf_name, sizeof(bf_name), tmp_name);
+  free(tmp_name);
+#else
   if (switchd_ctx->asic[dev_id].chip_family == BF_DEV_FAMILY_TOFINO3) {
 #ifndef TOFINO3_MULTI_SUBDEV_MODE
     snprintf(bf_name, sizeof(bf_name), "%s%ds0", "/dev/bf", dev_id);
@@ -2461,6 +2569,7 @@ static bf_status_t bf_mmap_dev(bf_dev_id_t dev_id) {
   } else {
     snprintf(bf_name, sizeof(bf_name), "%s%d", "/dev/bf", dev_id);
   }
+#endif
   pcie_map->dev_fd = open(bf_name, O_RDWR);
   if (pcie_map->dev_fd < 0) {
     bf_sys_log_and_trace(
@@ -2483,7 +2592,7 @@ static bf_status_t bf_mmap_dev(bf_dev_id_t dev_id) {
       break;
   }
 
-  pcie_map->dev_base_addr = mmap(NULL,
+  pcie_map->dev_base_addr = (uint8_t *)mmap(NULL,
                                  pcie_map->dev_base_size,
                                  PROT_READ | PROT_WRITE,
                                  MAP_SHARED,
@@ -2499,11 +2608,15 @@ static bf_status_t bf_mmap_dev(bf_dev_id_t dev_id) {
 }
 
 static void setup_async_notification(int fd) {
+#ifdef __sun
+  (void) fd;
+#else
   int flags;
 
   fcntl(fd, F_SETOWN, getpid());
   flags = fcntl(fd, F_GETFL);
   fcntl(fd, F_SETFL, flags | FASYNC);
+#endif
 }
 
 static bf_status_t bf_switchd_msix_map_init(bf_dev_id_t dev_id) {
@@ -2656,6 +2769,17 @@ bf_status_t bf_switchd_device_add(bf_dev_id_t dev_id, bool setup_dma) {
         bf_switchd_free_device_profile(&dev_profile);
         return BF_NO_SYS_RESOURCES;  // return error instead of exiting
       }
+#ifdef __sun
+	if (switchd_ctx->args.kernel_pkt) {
+		int resetting = 1;
+		printf("trigger tfpkt reset\n");
+		int dev_fd = (&(switchd_ctx->pcie_map[dev_id][0]))->dev_fd;
+		if (ioctl(dev_fd, BF_PKT_INIT, &resetting) != 0) {
+			printf("failed to trigger tfpkt reset: %s\n",
+			    strerror(errno));
+		}
+	}
+#endif
       /* add pci error signal handler */
       if (switchd_ctx->asic[dev_id].chip_family == BF_DEV_FAMILY_TOFINO3) {
         int dev_fd, cnt;
@@ -2835,6 +2959,7 @@ static int bf_switchd_check_for_interrupts_or_timeout(
   bf_dev_id_t dev_id = 0;
   switchd_state_t *dev_state;
   static uint32_t max_subdev_id_cnt = 0;
+  static struct timeval warned_at = {0, 0};
 
   if (max_subdev_id_cnt == 0) {
     max_subdev_id_cnt = bf_switchd_get_max_subdev_id_cnt();
@@ -2882,10 +3007,14 @@ static int bf_switchd_check_for_interrupts_or_timeout(
   tv.tv_usec = timeout_value_us;
   err = select(maxfd + 1, dev_fd_set_p, NULL, NULL, &tv);
   if (err < 0) {
-    bf_sys_log_and_trace(BF_MOD_SWITCHD,
+	  gettimeofday(&tv, NULL);
+	  if (tv.tv_sec - warned_at.tv_sec >= 300) {
+		  warned_at.tv_sec = tv.tv_sec;
+		  bf_sys_log_and_trace(BF_MOD_SWITCHD,
                          BF_LOG_ERR,
                          "ERROR: select() failed with ret_code %d",
                          err);
+	  }
   }
   return 0;
 }
@@ -2988,7 +3117,7 @@ static void *bf_switchd_lib_load(char *lib) {
   }
 
   handle = dlopen(lib, RTLD_LAZY | RTLD_GLOBAL);
-  if ((error = dlerror()) != NULL) {
+  if (handle == NULL && (error = dlerror()) != NULL) {
     bf_sys_log_and_trace(BF_MOD_SWITCHD,
                          BF_LOG_ERR,
                          "ERROR:%s:%d: dlopen failed for %s, err=%s",
@@ -4856,6 +4985,13 @@ static int bf_switchd_device_type_get(void) {
 /* Initialize bf-driver libraries */
 static int bf_switchd_driver_init(bool kernel_pkt_proc) {
   int ret = 0;
+  int is_master;
+
+#if __sun
+  is_master = 1;
+#else
+  is_master = !kernel_pkt_proc;
+#endif
 
   /* Initialize the base driver */
   ret = bf_drv_init();
@@ -4871,7 +5007,7 @@ static int bf_switchd_driver_init(bool kernel_pkt_proc) {
    * only do "non-master-mode" bf_lld_init in that case.
    */
   ret =
-      bf_lld_init(!kernel_pkt_proc, bf_switchd_reg_wr_fn, bf_switchd_reg_rd_fn);
+      bf_lld_init(is_master, bf_switchd_reg_wr_fn, bf_switchd_reg_rd_fn);
   if (ret != 0) {
     bf_sys_log_and_trace(
         BF_MOD_SWITCHD, BF_LOG_ERR, "ERROR: bf_lld_init failed : %d", ret);
@@ -5232,7 +5368,7 @@ static int bf_switchd_dru_sim_init(void) {
   return 0;
 
 #else   // STATIC_LINK_LIB
-  int (*dru_sim_init_fn)(int, dru_sim_dma2virt_dbg_callback_fn);
+  int (*dru_sim_init_fn)(char *, int, dru_sim_dma2virt_dbg_callback_fn);
   void *(*dru_pcie_dma_service_thread_entry_fn)(void *);
 
   /* Load dru sim library */
@@ -5273,7 +5409,8 @@ static int bf_switchd_dru_sim_init(void) {
   }
 
   /* Initialize the dru_sim library */
-  ret = dru_sim_init_fn(switchd_ctx->args.tcp_port_base, bf_dma2virt_dbg);
+  ret = dru_sim_init_fn(switchd_ctx->args.model_ip,
+    switchd_ctx->args.tcp_port_base, bf_dma2virt_dbg);
   if (ret != 0) {
     bf_sys_log_and_trace(
         BF_MOD_SWITCHD, BF_LOG_ERR, "ERROR: DRU sim initialization failed");
@@ -5307,6 +5444,7 @@ static void *bf_sys_timer_init_wrapper(void *arg) {
 }
 /* Initialize system services expected by drivers */
 static int bf_switchd_sys_init(void) {
+  struct stat buf;
   int ret = 0;
   int len;
 
@@ -5330,10 +5468,15 @@ static int bf_switchd_sys_init(void) {
    * on in the init sequence a few config/log files length used are being
    * limited by the PIPE_MGR_CFG_FILE_LEN (250). */
   char bf_sys_log_cfg_file[BF_SWITCHD_MAX_FILE_NAME] = {0};
-  len = snprintf(bf_sys_log_cfg_file,
+  if (stat("./zlog-cfg", &buf) == 0) {
+    len = snprintf(bf_sys_log_cfg_file, sizeof(bf_sys_log_cfg_file),
+		"./zlog-cfg");
+  } else {
+    len = snprintf(bf_sys_log_cfg_file,
                  sizeof(bf_sys_log_cfg_file),
                  "%s/share/bf_switchd/zlog-cfg",
                  switchd_ctx->args.install_dir);
+  }
 
   bf_sys_log_and_trace(BF_MOD_SWITCHD,
                        BF_LOG_DBG,
@@ -5362,6 +5505,7 @@ static int bf_switchd_sys_init(void) {
   }
 
 /* Don't override logging levels if flag is set. */
+#if 0
 #ifndef DRV_DEV_LOGS
   /* For performance set defaut log level to error for pipe and pkt modules */
   bf_sys_log_level_set(BF_MOD_PIPE, BF_LOG_DEST_FILE, BF_LOG_ERR);
@@ -5373,6 +5517,7 @@ static int bf_switchd_sys_init(void) {
 #ifdef BFRT_ENABLED
   bf_sys_log_level_set(BF_MOD_BFRT, BF_LOG_DEST_FILE, BF_LOG_ERR);
   bf_sys_trace_level_set(BF_MOD_BFRT, BF_LOG_ERR);
+#endif
 #endif
 #endif
 
@@ -5408,7 +5553,14 @@ static void pci_err_handler(int signum, siginfo_t *siginfo, void *arg) {
                        siginfo->si_code,
                        siginfo->si_band);
   (void)arg;
-  if (siginfo->si_code == SI_KERNEL && siginfo->si_band == 0) {
+
+#ifdef __sun
+  int from_kernel = SI_FROMKERNEL(siginfo);
+#else
+  int from_kernel = (siginfo->si_code == SI_KERNEL);
+#endif
+
+  if (from_kernel && siginfo->si_band == 0) {
     bf_sys_log_and_trace(BF_MOD_SWITCHD,
                          BF_LOG_CRIT,
                          "bf_switchd:received pci error signal %d",
@@ -5490,6 +5642,7 @@ static void setup_pci_err_handler() {
   sigaction(SIGIO, &pci_err_action, NULL);
 }
 
+#ifndef __sun
 static bf_status_t bf_switchd_sysfs_cpuif_name_get(char *file_node,
                                                    char *cpuif_netdev_name,
                                                    size_t cpuif_name_size) {
@@ -5512,6 +5665,7 @@ static bf_status_t bf_switchd_sysfs_cpuif_name_get(char *file_node,
   }
   return BF_OBJECT_NOT_FOUND;
 }
+#endif // __sun
 
 /* While running on asic the netdev name is derived from PCIe sysfs str
 corresponing to the bf_kpkt driver. Otherwise if running as a model the
@@ -5524,10 +5678,15 @@ bf_status_t bf_switchd_cpuif_netdev_name_get(bf_dev_id_t dev_id,
   p4_devices_t *p4_devices = &(switchd_ctx->p4_devices[dev_id]);
 
   if (!switchd_ctx->asic[dev_id].is_sw_model) {
+#if __sun
+	  printf("ILLUMOS: ignoring call to %s\n", __func__);
+	  return BF_OBJECT_NOT_FOUND;
+#else
     return bf_switchd_sysfs_cpuif_name_get(
         switchd_ctx->asic[dev_id].pcie_cfg.pci_sysfs_str,
         cpuif_netdev_name,
         cpuif_name_size);
+#endif
   } else if (p4_devices) {
     uint32_t i = 0;
     for (i = 0; i < p4_devices->num_p4_programs; i++) {
@@ -5552,6 +5711,15 @@ bf_status_t bf_switchd_cpuif_10g_netdev_name_get(bf_dev_id_t dev_id,
                                                  int instance,
                                                  char *cpuif_netdev_name,
                                                  size_t cpuif_name_size) {
+#if __sun
+	ILLUMOS_UNUSED(dev_id);
+	ILLUMOS_UNUSED(pci_bus_dev);
+	ILLUMOS_UNUSED(instance);
+	ILLUMOS_UNUSED(cpuif_netdev_name);
+	ILLUMOS_UNUSED(cpuif_name_size);
+	  printf("ILLUMOS: ignoring call to %s\n", __func__);
+	  return BF_OBJECT_NOT_FOUND;
+#else
   char sysfs_path_10g[128];
 
   (void)dev_id;
@@ -5559,6 +5727,7 @@ bf_status_t bf_switchd_cpuif_10g_netdev_name_get(bf_dev_id_t dev_id,
       sysfs_path_10g, sizeof(sysfs_path_10g), "%s.%1d", pci_bus_dev, instance);
   return bf_switchd_sysfs_cpuif_name_get(
       sysfs_path_10g, cpuif_netdev_name, cpuif_name_size);
+#endif
 }
 
 bf_status_t bf_switchd_pltfm_type_get(bf_dev_id_t dev_id, bool *is_sw_model) {
@@ -5651,6 +5820,9 @@ bool bf_switchd_is_kernel_pkt_proc(bf_dev_id_t dev_id) {
 
 bf_status_t bf_switchd_kpkt_enable_traffic(bf_dev_id_t dev_id) {
   if (switchd_ctx->args.kernel_pkt) {
+#if __sun
+	(void)dev_id;
+#else
     bf_sys_log_and_trace(
         BF_MOD_SWITCHD,
         BF_LOG_DBG,
@@ -5683,6 +5855,7 @@ bf_status_t bf_switchd_kpkt_enable_traffic(bf_dev_id_t dev_id) {
           "warm_init_end");
       return -1;
     }
+#endif
   }
 
   return BF_SUCCESS;
@@ -5770,7 +5943,11 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
   switchd_ctx->args = *ctx;
   bf_sys_mutex_init(&switchd_ctx->init_done_mutex);
 
+#ifndef __sun
+  // On helios we have no support for user-space packet processing, so
+  // we don't bother checking for the kernel module.
   switchd_ctx->args.kernel_pkt = bf_switchd_is_kernel_pkt_module_present();
+#endif
 
   bf_switchd_init_dma_template(switchd_ctx->args.kernel_pkt);
 
@@ -6026,6 +6203,9 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
     }
   }
   if (single_device) {
+#if __sun
+      printf("ILLUMOS: ignoring attempt to get sysfs path\n");
+#else
     int res;
     res = switch_pci_sysfs_str_get(
         switchd_ctx->asic[0].pcie_cfg.pci_sysfs_str,
@@ -6041,6 +6221,7 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
                            "ASIC detected at PCI %s",
                            switchd_ctx->asic[0].pcie_cfg.pci_sysfs_str);
     }
+#endif /* __sun */
   }
 
   /* get asic pci device id */
@@ -6089,6 +6270,9 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
     bf_sys_sleep(3);
   }
 
+#if __sun
+    printf("ILLUMOS: skipping sysfs write to cold reset the kpkt device\n");
+#else
   if (switchd_ctx->args.kernel_pkt &&
       switchd_ctx->args.init_mode == BF_DEV_INIT_COLD) {
     /* cold initialzation. the driver sysfs file, "m_init" is written the
@@ -6101,6 +6285,7 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
       return -1;
     }
   }
+#endif
 
   /* Initialize driver libraries and start PD API RPC thrift server */
   ret = bf_switchd_driver_init(switchd_ctx->args.kernel_pkt);
@@ -6187,6 +6372,7 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
     }
     if (switchd_ctx->args.kernel_pkt &&
         switchd_ctx->args.init_mode == BF_DEV_INIT_COLD) {
+#ifndef __sun
       if (bf_switchd_sysfs_set(switchd_ctx->asic[dev_id].pcie_cfg.pci_sysfs_str,
                                "dev_add",
                                "1",
@@ -6196,6 +6382,17 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
                              "ERROR: kernel packet module device add failed");
         continue;  // allow the remaining devices to come up
       }
+#else
+	if (switchd_ctx->args.kernel_pkt) {
+		int resetting = 0;
+		printf("activating tfpkt\n");
+		int dev_fd = (&(switchd_ctx->pcie_map[dev_id][0]))->dev_fd;
+		if (ioctl(dev_fd, BF_PKT_INIT, &resetting) != 0) {
+			printf("failed to enable tbus access: %s\n",
+			    strerror(errno));
+		}
+	}
+#endif
     }
 
     num_devices_initialized++;
@@ -6301,8 +6498,7 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
 #ifdef BFRT_ENABLED
   sts = bf_rt_grpc_server_run(
       switchd_ctx->p4_devices[0].p4_programs[0].program_name,
-      switchd_ctx->args.server_listen_local_only,
-      switchd_ctx->args.bf_rt_grpc_port);
+      switchd_ctx->args.server_listen_local_only);
   if (sts != BF_SUCCESS) {
     bf_sys_log_and_trace(BF_MOD_SWITCHD,
                          BF_LOG_DBG,

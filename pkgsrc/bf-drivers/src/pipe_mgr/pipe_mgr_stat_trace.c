@@ -17,7 +17,9 @@
  *  SPDX-License-Identifier: Apache-2.0
  ******************************************************************************/
 
-
+#ifdef __sun
+#include <illumos.h>
+#endif
 #include "pipe_mgr_stat_trace.h"
 
 void pipe_mgr_stat_mgr_trace_add(pipe_mgr_stat_tbl_t *stat_tbl,

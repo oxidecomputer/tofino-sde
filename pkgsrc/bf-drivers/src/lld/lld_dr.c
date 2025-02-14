@@ -21,6 +21,9 @@
 #ifndef __KERNEL__
 #include <stdio.h>
 #include <string.h>  //for memset
+#ifdef __sun
+#include <endian.h>
+#endif
 #else
 #include <linux/string.h>  //for memset
 #include <asm/byteorder.h>

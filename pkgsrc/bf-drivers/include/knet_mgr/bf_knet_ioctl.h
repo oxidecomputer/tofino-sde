@@ -21,7 +21,12 @@
 #ifndef _BF_KNET_IOCTL_H_
 #define _BF_KNET_IOCTL_H_
 
+#ifdef __sun
+#include <net/if.h>
+#define SIOCDEVPRIVATE     0x89F0  /* to 89FF */
+#else
 #include <linux/if.h>
+#endif // __sun
 
 #define SIOCBFKNETCMD SIOCDEVPRIVATE
 #define BF_KNET_NETDEV_NAME_MAX IFNAMSIZ

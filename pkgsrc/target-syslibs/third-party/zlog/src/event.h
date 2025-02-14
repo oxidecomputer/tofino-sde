@@ -10,7 +10,7 @@
 #define __zlog_event_h
 
 typedef	long	time_t;		/* time of day in seconds */
-typedef long    suseconds_t;
+typedef	long	suseconds_t;	/* signed # of microseconds */
 #include <sys/time.h>   /* for struct timeval */
 #include <sys/types.h>  /* for pid_t */
 #include <pthread.h>    /* for pthread_t */

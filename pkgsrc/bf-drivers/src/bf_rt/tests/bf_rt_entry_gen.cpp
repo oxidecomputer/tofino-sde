@@ -17,6 +17,9 @@
  *  SPDX-License-Identifier: Apache-2.0
  ******************************************************************************/
 
+#ifdef __sun
+#include <endian.h>
+#endif
 
 #include <bf_rt_common/bf_rt_utils.hpp>
 #include "bf_rt_entry_gen.hpp"

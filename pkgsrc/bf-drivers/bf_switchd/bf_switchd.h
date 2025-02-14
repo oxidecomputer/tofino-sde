@@ -200,6 +200,8 @@ typedef struct bf_switchd_context_s {
    * still be used to access a CLI session. */
   bool running_in_background;
 
+  char *model_ip;
+
   /* Base TCP port number used for communication with the asic model via the
    * dru_sim library. */
   int tcp_port_base;
@@ -250,6 +252,15 @@ typedef struct bf_switchd_context_s {
    * SDE driver components, not to be used during normal switch operation. */
   switchd_skip_hld_t skip_hld;
   void (*bf_switchd_agent_deinit_fn)(void);
+
+  /*
+   * The revision of the Sidecar main board against which we're running.
+   *
+   * This is used to load the correct version of the board map, describing
+   * filtering parameters, connector-to-MAC-channel mappings, lane inversions,
+   * etc.
+   */
+  char *sidecar_revision;
 
 } bf_switchd_context_t;
 

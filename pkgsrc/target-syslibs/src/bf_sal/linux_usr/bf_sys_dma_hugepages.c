@@ -181,17 +181,11 @@ static uint32_t conv_to_next_aligned(uint32_t val, uint32_t alignment) {
 static void *alloc_huge_pages(size_t size, unsigned int header_offset) {
   size_t actual_size;
   char *ptr;
+
   actual_size = ALIGN_TO_BF_PAGE_SIZE(size + header_offset);
   ptr = (char *)mmap(NULL, actual_size, PROT_READ | PROT_WRITE,
-                     MAP_SHARED | MAP_ANONYMOUS | MAP_POPULATE | MAP_HUGETLB |
-                         (21 << MAP_HUGE_SHIFT),
+                     MAP_SHARED | MAP_ANONYMOUS | MAP_POPULATE | MAP_HUGETLB,
                      -1, 0);
-  if (ptr == MAP_FAILED) {
-    // If 2MB failed, retry with default size
-    ptr = (char *)mmap(NULL, actual_size, PROT_READ | PROT_WRITE,
-                       MAP_SHARED | MAP_ANONYMOUS | MAP_POPULATE | MAP_HUGETLB,
-                       -1, 0);
-  }
   if (ptr == MAP_FAILED) {
     return NULL;
   }
@@ -504,7 +498,7 @@ static int bf_pop_free_buf(bf_huge_pool_t *pool, void **buf_ptr) {
     *buf_ptr = (pool->pool_buf_ptr)[pool->pool_buf_offset++];
   }
   /* open the gate */
-  __sync_val_compare_and_swap(&pool->pool_gate, 1, 0);
+  pool->pool_gate = 0;
   return err;
 }
 
@@ -524,15 +518,15 @@ static int bf_push_free_buf(bf_huge_pool_t *pool, void *buf_ptr) {
   }
 
   /* open the gate */
-  __sync_val_compare_and_swap(&pool->pool_gate, 1, 0);
+  pool->pool_gate = 0;
   return err;
 }
 
 /**
  *  Allocate a buffer from a DMA memory pool
  */
-int bf_sys_dma_alloc(bf_sys_dma_pool_handle_t hndl, size_t size, void **v_addr,
-                     bf_phys_addr_t *phys_addr) {
+int _bf_sys_dma_alloc(bf_sys_dma_pool_handle_t hndl, size_t size, void **v_addr,
+                     bf_phys_addr_t *phys_addr, const char *file, int line) {
   (void)size;
   bf_huge_pool_t *dma_pool = (bf_huge_pool_t *)hndl;
 
@@ -547,11 +541,11 @@ int bf_sys_dma_alloc(bf_sys_dma_pool_handle_t hndl, size_t size, void **v_addr,
   }
   if (bf_sys_dma_get_phy_addr_from_pool(dma_pool, *v_addr,
                                         (bf_dma_addr_t *)phys_addr)) {
-    printf("Error getting buf physical address\n");
+    printf("%s:%d Error getting buf physical address\n", file, line);
     return -1;
   }
   if (*phys_addr == BF_INVALID_PHY_ADDR) {
-    printf("Error bad physical address\n");
+    printf("%s:%d Error bad physical address\n", file, line);
     return -1;
   }
   return 0;
@@ -610,35 +604,6 @@ void bf_sys_dma_free(bf_sys_dma_pool_handle_t hndl, void *v_addr) {
   assert(v_addr);
 
   bf_push_free_buf(dma_pool, v_addr);
-}
-
-/* convenient wrapper APIs if the pool needs just one buffer */
-
-/**
- *  Allocate a single buffer DMA memory pool
- */
-int bf_sys_dma_buffer_alloc(char *pool_name, bf_sys_dma_pool_handle_t *hndl,
-                            int dev_id, uint32_t subdev_id, size_t size,
-                            void **v_addr, bf_phys_addr_t *phys_addr) {
-  if (bf_sys_dma_pool_create(pool_name, hndl, dev_id, subdev_id, size, 1, 64) !=
-      0) {
-    *v_addr = NULL;
-    *phys_addr = 0;
-    return -1;
-  }
-  if (bf_sys_dma_alloc(*hndl, size, v_addr, phys_addr) != 0) {
-    bf_sys_dma_pool_destroy(*hndl);
-    return -1;
-  }
-  return 0;
-}
-
-/**
- *  Free a single buffer DMA memory pool
- */
-void bf_sys_dma_buffer_free(bf_sys_dma_pool_handle_t hndl, void *v_addr) {
-  bf_sys_dma_free(hndl, v_addr);
-  bf_sys_dma_pool_destroy(hndl);
 }
 
 /**

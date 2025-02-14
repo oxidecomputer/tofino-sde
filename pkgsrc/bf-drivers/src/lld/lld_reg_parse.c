@@ -49,6 +49,10 @@
 #include "lld_map.h"
 #include <lld/lld_sku.h>
 
+#ifdef __sun
+#define __P(x) x
+#endif
+
 typedef enum bf_lld_decoder_access_type {
   REG_OP = 0,
   MEM_OP = 1,

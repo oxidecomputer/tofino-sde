@@ -21,6 +21,9 @@
 #include <arpa/inet.h>
 #include <inttypes.h>
 #include <bitset>
+#ifdef __sun
+#include <endian.h>
+#endif
 
 #include <bf_rt_common/bf_rt_table_field_utils.hpp>
 #include <bf_rt_common/bf_rt_utils.hpp>

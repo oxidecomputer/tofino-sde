@@ -26,6 +26,9 @@
  */
 
 #include <time.h>
+#ifdef __sun
+#include <illumos.h>
+#endif
 /* Module header files */
 #include <dvm/bf_drv_intf.h>
 #include <tofino_regs/tofino.h>

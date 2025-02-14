@@ -21,6 +21,9 @@
 #include <bitset>
 #include <arpa/inet.h>
 #include <inttypes.h>
+#ifdef __sun
+#include <endian.h>
+#endif
 
 #include <tdi/common/tdi_utils.hpp>
 #include <tdi_common/tdi_table_field_utils.hpp>

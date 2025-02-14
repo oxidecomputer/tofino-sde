@@ -21,6 +21,9 @@
 #ifndef _BF_RT_UTILS_HPP
 #define _BF_RT_UTILS_HPP
 
+#ifdef __sun
+#include <endian.h>
+#endif
 #include <queue>
 #include <mutex>
 #include <future>
@@ -28,6 +31,9 @@
 #include <condition_variable>
 #include <functional>
 #include <cstring>
+#ifdef __sun
+#include <endian.h>
+#endif
 
 #include <target-sys/bf_sal/bf_sys_intf.h>
 

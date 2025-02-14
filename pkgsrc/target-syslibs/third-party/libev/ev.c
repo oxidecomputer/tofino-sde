@@ -4084,6 +4084,7 @@ infy_add (EV_P_ ev_stat *w)
 
   if (w->wd >= 0)
     {
+#if 0
       struct statfs sfs;
 
       /* now local changes will be tracked by inotify, but remote changes won't */
@@ -4107,6 +4108,7 @@ infy_add (EV_P_ ev_stat *w)
                    || sfs.f_type == 0x58465342 /* xfs */))
         w->timer.repeat = 0.; /* filesystem is local, kernel new enough */
       else
+#endif
         w->timer.repeat = w->interval ? w->interval : NFS_STAT_INTERVAL; /* remote, use reduced frequency */
     }
   else

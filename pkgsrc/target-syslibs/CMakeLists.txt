@@ -121,3 +121,9 @@ endif()
 
 file(COPY include/target-sys DESTINATION ${CMAKE_INSTALL_PREFIX}/include
   PATTERN "*.am" EXCLUDE)
+
+# For some reason this causes the library to get deleted as a side effect
+# of the RPATH_CHECK CMake generates in the cmake_install.cmake file.
+# Since the library builds in the install directory anyway, this seems
+# unnecessary.
+install(TARGETS target_sys DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)

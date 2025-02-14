@@ -24,6 +24,9 @@
 #include <bf_types/bf_kernel_types.h>
 #include <linux/delay.h>
 #endif
+#ifdef __sun
+#include <illumos.h>
+#endif
 
 #include <bf_types/bf_types.h>
 #include <lld/lld_reg_if.h>
@@ -40,7 +43,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#ifdef __sun
+#include <illumos.h>
+#else
 #include <byteswap.h>
+#endif // __sun
 #include <target-utils/third-party/cJSON/cJSON.h>
 #include <ctx_json/ctx_json_utils.h>
 #endif
