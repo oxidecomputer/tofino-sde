@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # This script extracts a subset of the include files and libraries from the
-# Intel Tofino SDE, and generates an Illumos package containing them.  The
+# Tofino SDE, and generates an Illumos package containing them.  The
 # files should be limited to those needed to build and run the Dendrite
 # controller stack.
 
-BASE_FMRI=pkg://oxide/internal/bf_sde
+BASE_FMRI=pkg://oxide/internal/tofino_sde
 
 if [ $BUILD_TARBALL == 0 ];
 then
@@ -76,21 +76,21 @@ function build_p5p() {
 
 function build_tarball() {
 	echo building tarball
-	tar cfz ${ARCHIVE} -C $BUILD_DIR opt/oxide/bf_sde
+	tar cfz ${ARCHIVE} -C $BUILD_DIR opt/oxide/tofino_sde
 }
 
 BUILD_DIR=`/usr/bin/mktemp -d`
 echo Building the proto area in $BUILD_DIR
 trap cleanup EXIT
 
-/usr/bin/mkdir -p $BUILD_DIR/opt/oxide/bf_sde
+/usr/bin/mkdir -p $BUILD_DIR/opt/oxide/tofino_sde
 for d in `cat $TOOL_ROOT/common_dir_list` `cat $TOOL_ROOT/helios/dir_list`; do
-	/usr/bin/mkdir -p $BUILD_DIR/opt/oxide/bf_sde/$d
+	/usr/bin/mkdir -p $BUILD_DIR/opt/oxide/tofino_sde/$d
 done
 for f in `cat $TOOL_ROOT/common_file_list` `cat $TOOL_ROOT/helios/file_list`; do
-	/usr/bin/cp $SDE_INSTALL/$f $BUILD_DIR/opt/oxide/bf_sde/$f
+	/usr/bin/cp $SDE_INSTALL/$f $BUILD_DIR/opt/oxide/tofino_sde/$f
 done
-git rev-list HEAD -1 > $BUILD_DIR/opt/oxide/bf_sde/version
+git rev-list HEAD -1 > $BUILD_DIR/opt/oxide/tofino_sde/version
 
 if [ $BUILD_TARBALL == 1 ]; then
 	build_tarball

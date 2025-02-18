@@ -41,8 +41,6 @@ uint32_t port_mgr_tof3_map_dev_port_to_port_index(bf_dev_id_t dev_id,
 port_mgr_tof3_serdes_t *port_mgr_tof3_map_tmac_ch_to_serdes(bf_dev_id_t dev_id,
                                                             uint32_t tmac,
                                                             uint32_t ch);
-port_mgr_tof3_serdes_t *port_mgr_tof3_map_dev_port_lane_to_serdes(
-    bf_dev_id_t dev_id, bf_dev_port_t dev_port, uint32_t ln);
 port_mgr_tmac_t *port_mgr_tof3_map_dev_port_lane_to_tmac(
     bf_dev_id_t dev_id, bf_dev_port_t dev_port);
 

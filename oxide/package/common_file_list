@@ -192,7 +192,6 @@ include/traffic_mgr/traffic_mgr_types.h
 include/traffic_mgr/traffic_mgr.h
 lib/bfshell_plugin_clish.so
 lib/bfshell_plugin_pipemgr.so
-lib/libavago.so
 lib/libbfutils.so
 lib/libclish.so
 lib/libdriver.so

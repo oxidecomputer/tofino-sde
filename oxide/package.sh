@@ -3,19 +3,8 @@
 set -e
 
 function find_sde_version() {
-	MANIFESTS=`find ${SDE} -maxdepth 1 -name "*.manifest"`
-	if [ x"$MANIFESTS" == x ]; then
-		echo "No manifest found - can't determine version"
-		exit 1
-	fi
-
-	CNT=`/bin/ls $MANIFESTS | wc -l`
-	if [ $CNT != "1" ]; then
-		echo "Found multiple manifests - can't determine version"
-		exit 1
-	fi
-
-	export SDE_VERSION=`basename $MANIFESTS | sed "s/bf-sde-//;s/.manifest//"`
+	IFACE_VERSION=`cat ${SDE}/install/share/VERSION`
+	export SDE_VERSION=$IFACE_VERSION-`/usr/bin/date +'%Y%m%d'`
 }
 
 function usage() {
@@ -25,12 +14,9 @@ function usage() {
 	printf "    -v\toveride the default SDE version\n"
 }
 
-if [ x"${SDE}" == x ]; then
-	export SDE=`git rev-parse --show-toplevel`
-	echo Using SDE at git root: ${SDE}
-else
-	echo Using SDE from environment: ${SDE}
-fi
+export SDE=`git rev-parse --show-toplevel`
+echo Using SDE at git root: ${SDE}
+
 export SDE_INSTALL=${SDE}/install
 export TOOL_ROOT=${SDE}/oxide/package
 find_sde_version

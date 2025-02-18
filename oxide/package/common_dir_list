@@ -30,3 +30,6 @@ lib
 share
 share/cli
 share/cli/xml
+share/tofino_sds_fw
+share/tofino_sds_fw/credo
+share/tofino_sds_fw/credo/firmware
