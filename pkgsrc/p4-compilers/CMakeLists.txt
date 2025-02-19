@@ -45,7 +45,6 @@ set (ENABLE_P4C_GRAPHS OFF CACHE BOOL "")
 # Enable Unity builds for the compiler and bf-asm to speed up compilation.
 set(CMAKE_UNITY_BUILD_PREV ${CMAKE_UNITY_BUILD})
 set(CMAKE_UNITY_BUILD ON)
-message("NNN Adding: " ${RAPIDJSON_DIR})
 include_directories(${RAPIDJSON_DIR})
 add_subdirectory(p4c)
 

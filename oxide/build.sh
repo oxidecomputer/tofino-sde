@@ -94,6 +94,8 @@ if [ `uname -s` == SunOS ]; then
 	export ILLUMOS=1
 	export MAKE=gmake
 	export PATH=${PATH}:/usr/lib/python3.11/bin:/usr/gnu/bin/:~/.local/bin
+	echo Wrapping wrap_libport_mgr_hw
+	(cd wrap_libport_mgr_hw ; gmake install)
 else
 	export ILLUMOS=0
 	export MAKE=make

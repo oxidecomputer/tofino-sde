@@ -126,4 +126,4 @@ file(COPY include/target-sys DESTINATION ${CMAKE_INSTALL_PREFIX}/include
 # of the RPATH_CHECK CMake generates in the cmake_install.cmake file.
 # Since the library builds in the install directory anyway, this seems
 # unnecessary.
-install(TARGETS target_sys DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+#install(TARGETS target_sys DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
