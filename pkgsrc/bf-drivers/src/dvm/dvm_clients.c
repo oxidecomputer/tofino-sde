@@ -29,6 +29,7 @@
 #include <dvm/bf_drv_intf.h>
 #include "dvm.h"
 #include <dvm/dvm_log.h>
+#include <port_mgr/bf_fsm_if.h>
 #include <pipe_mgr/pipe_mgr_intf.h>
 #include <traffic_mgr/traffic_mgr_port_intf.h>
 #include <traffic_mgr/traffic_mgr_miscapi.h>
@@ -920,13 +921,15 @@ bf_status_t bf_drv_notify_clients_port_del(bf_dev_id_t dev_id,
 void bf_drv_notify_clients_port_status_chg(bf_dev_id_t dev_id,
                                            bf_dev_port_t port_id,
                                            port_mgr_port_event_t event,
+                                           uint32_t event_data,
                                            void *userdata) {
   int id = 0;
   bf_drv_client_t *db_ptr = NULL;
   bf_status_t client_status = BF_SUCCESS;
-  bool status_event = false, speed_event = false;
+  bool status_event = false, speed_event = false, fsm_event = false;
   bool port_up = false;
   bf_port_speed_t speed = 0;
+  bf_fsm_st fsm_state;
 
   (void)userdata;
   if (event == PORT_MGR_PORT_EVT_UP) {
@@ -939,6 +942,9 @@ void bf_drv_notify_clients_port_status_chg(bf_dev_id_t dev_id,
     speed_event = true;
     /* Get the speed from LLD */
     speed = 0;
+  } else if (event == PORT_MGR_PORT_FSM_TRANSITION) {
+    fsm_event = true;
+    fsm_state = (bf_fsm_st) event_data;
   }
 
   for (id = BF_DRV_MAX_CLIENTS - 1; id >= 0; id--) {
@@ -964,6 +970,18 @@ void bf_drv_notify_clients_port_status_chg(bf_dev_id_t dev_id,
       if (client_status != BF_SUCCESS) {
         LOG_ERROR(
             "Port speed handing failed for dev %d, port %d,"
+            " sts %s (%d), Client %s ",
+            dev_id,
+            port_id,
+            bf_err_str(client_status),
+            client_status,
+            db_ptr->client_name);
+      }
+    } else if ((fsm_event) && (db_ptr->callbacks.port_fsm)) {
+      client_status = db_ptr->callbacks.port_fsm(dev_id, port_id, fsm_state);
+      if (client_status != BF_SUCCESS) {
+        LOG_ERROR(
+            "Port FSM handling failed for dev %d, port %d,"
             " sts %s (%d), Client %s ",
             dev_id,
             port_id,

@@ -23,6 +23,7 @@
 #include <port_mgr/port_mgr_intf.h>
 #include <lld/bf_dev_if.h>
 #include <bf_types/bf_types.h>
+#include <port_mgr/bf_fsm_if.h>
 #include "port_mgr.h"
 #include "port_mgr_log.h"
 #include "port_mgr_dev.h"

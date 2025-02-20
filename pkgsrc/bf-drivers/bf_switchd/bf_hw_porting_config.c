@@ -41,6 +41,8 @@
 #include <target-utils/clish/thread.h>
 
 /* <bf_driver> includes */
+#include <bf_types/bf_types.h>
+#include <bf_pm/bf_pm_fsm_common.h>
 #include <bf_pm/bf_pm_intf.h>
 #include <dvm/bf_drv_intf.h>
 

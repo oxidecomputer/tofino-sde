@@ -25,6 +25,8 @@ add_library(pltfm_o OBJECT
 set(SIDECAR_PLTFM_SRCS
   platforms/sidecar/src/platform_mgr/platform.c
   platforms/sidecar/src/platform_mgr/board.c
+  platforms/sidecar/src/platform_mgr/ext_phy.c
+  platforms/sidecar/src/platform_mgr/led.c
 )
 add_library(sidecar_driver_o OBJECT
   ${SIDECAR_PLTFM_SRCS}
@@ -56,7 +58,6 @@ endif()
 
 add_library(pltfm_driver_o OBJECT
   drivers/src/bf_bd_cfg/bf_bd_cfg_intf.c
-  drivers/src/bf_bd_cfg/bf_bd_cfg_intf_ucli.c
   drivers/src/bf_bd_cfg/bf_bd_cfg_porting.c
   drivers/src/bf_qsfp/bf_qsfp_cli.c
   drivers/src/bf_qsfp/bf_qsfp_comm.c

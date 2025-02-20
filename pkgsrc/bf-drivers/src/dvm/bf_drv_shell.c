@@ -37,8 +37,10 @@
 #include <bfutils/bf_utils.h>
 #include <bf_types/bf_types.h>
 #include <dvm/bf_drv_intf.h>
+#include <bf_pm/bf_pm_fsm_common.h>
 #include <bf_pm/pm_intf.h>
 #include <lld/lld.h>
+#include <port_mgr/bf_fsm_if.h>
 #include <port_mgr/port_mgr_port.h>
 #include <pipe_mgr/pipe_mgr_stful_ucli.h>
 #include <traffic_mgr/common/traffic_mgr_int.h>

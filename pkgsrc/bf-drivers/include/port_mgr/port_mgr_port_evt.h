@@ -31,11 +31,14 @@ typedef enum {
   PORT_MGR_PORT_EVT_UP,
   PORT_MGR_PORT_EVT_DOWN,
   PORT_MGR_PORT_EVT_SPEED_SET,
+  PORT_MGR_PORT_FSM_TRANSITION,
+  // TODO: tofino-sde#2 PORT_MGR_PORT_PRESENCE_UPDATE,
 } port_mgr_port_event_t;
 
 typedef void (*port_mgr_port_callback_t)(bf_dev_id_t chip,
                                          bf_dev_port_t port,
                                          port_mgr_port_event_t reason,
+					 uint32_t event_data,
                                          void *userdata);
 
 bf_status_t port_mgr_register_port_cb(bf_dev_id_t dev_id,

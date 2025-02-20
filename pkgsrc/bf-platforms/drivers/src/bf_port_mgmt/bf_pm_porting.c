@@ -14,12 +14,18 @@
 #include <bf_pltfm_ext_phy.h>
 #include <bf_bd_cfg/bf_bd_cfg_intf.h>
 #include <port_mgr/bf_port_if.h>
-#include <port_mgr/bf_fsm_if.h>
 #include <bf_pm/bf_pm_fsm_common.h>
+#include <port_mgr/bf_fsm_if.h>
 #include <bf_pm/bf_pm_intf.h>
 #include <bf_pltfm.h>
 // Local header includes
 #include "bf_pm_priv.h"
+
+int bf_port_led_set(int chip_id,
+    bf_pltfm_port_info_t *port_info,
+    bf_led_condition_t led_cond) {
+	return (bf_pltfm_port_led_set(chip_id, port_info, led_cond));
+}
 
 // Until we integrate it with SDK
 bf_status_t bf_pm_encoding_mode_get(bf_port_speed_t speed,

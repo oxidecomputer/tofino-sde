@@ -23,6 +23,7 @@
 #include <dvm/dvm_intf.h>
 #include <pipe_mgr/pktgen_intf.h>
 #include <port_mgr/bf_port_if.h>
+#include <port_mgr/bf_fsm_if.h>
 #include <port_mgr/port_mgr_intf.h>
 #include <port_mgr/port_mgr.h>
 #include <port_mgr/port_mgr_port.h>
@@ -200,7 +201,7 @@ void port_mgr_link_up_actions(bf_dev_id_t dev_id, bf_dev_port_t dev_port) {
 
   // notify other modules (internal cb)
   if (fn) {
-    fn(dev_id, dev_port, PORT_MGR_PORT_EVT_UP, userdata);
+    fn(dev_id, dev_port, PORT_MGR_PORT_EVT_UP, 0, userdata);
   }
 
   // notify user level (external cb)
@@ -242,7 +243,7 @@ void port_mgr_link_dn_actions(bf_dev_id_t dev_id, bf_dev_port_t dev_port) {
 
   // notify other modules (internal cb)
   if (fn) {
-    fn(dev_id, dev_port, PORT_MGR_PORT_EVT_DOWN, userdata);
+    fn(dev_id, dev_port, PORT_MGR_PORT_EVT_DOWN, 0, userdata);
   }
 
   if (port_p) {
@@ -251,6 +252,26 @@ void port_mgr_link_dn_actions(bf_dev_id_t dev_id, bf_dev_port_t dev_port) {
       port_p->sts_chg_cb(
           dev_id, dev_port, PORT_MGR_PORT_EVT_DOWN, port_p->sts_chg_userdata);
     }
+  }
+}
+
+/**************************************************************************
+ * port_mgr_fsm_actions
+ *
+ * All actions to be effected upon a transition in the the port's AN/LT
+ * finite state machine.
+ **************************************************************************/
+void port_mgr_fsm_actions(bf_dev_id_t dev_id, bf_dev_port_t dev_port,
+    bf_fsm_st state) {
+  port_mgr_port_callback_t fn;
+  void *userdata;
+
+  port_mgr_dev_port_cb_get(dev_id, &fn, &userdata);
+
+  // notify other modules (internal cb)
+  if (fn) {
+    fn(dev_id, dev_port, PORT_MGR_PORT_FSM_TRANSITION, (uint32_t) state,
+	userdata);
   }
 }
 

@@ -65,11 +65,15 @@
 #include <port_mgr/bf_port_if.h>
 #include <port_mgr/bf_serdes_if.h>
 #include <port_mgr/bf_tof2_serdes_if.h>
+#include <bf_pm/bf_pm_fsm_common.h>
 #include <port_mgr/bf_fsm_if.h>
 #include <dvm/bf_drv_intf.h>
 #include <port_mgr/bf_fsm_hdlrs.h>
+#include <port_mgr/port_mgr_port.h>
 #include <port_mgr/port_mgr_tof2/umac4_ctrs.h>
 #include <port_mgr/port_mgr_tof2/port_mgr_tof2_map.h>
+#include <bf_pm/bf_pm_fsm_common.h>
+#include <bf_pm/bf_pm_intf.h>
 
 /* local includes */
 #include "pm.h"
@@ -632,12 +636,22 @@ static int pm_dm_set_fsm(bf_dev_id_t dev_id,
                          bf_fsm_t fsm,
                          bf_fsm_st fsm_cur_st) {
   pm_port_t *pm_port_p = pm_dm_find(dev_id, dev_port);
+  bf_fsm_st fsm_old_st;
 
   if (pm_port_p == NULL) return -1;
   if (!pm_port_p->added) return -2;
 
+  fsm_old_st = pm_port_p->fsm_st;
   pm_port_p->fsm = fsm;
   pm_port_p->fsm_st = fsm_cur_st;
+
+  if (fsm_old_st != fsm_cur_st) {
+	  bf_fsm_port_t p;
+	  p.asic_id = dev_port;
+	  bf_pm_fsm_transition(BF_FSM_PORT, p, fsm_old_st, fsm_cur_st);
+	  port_mgr_fsm_actions(dev_id, dev_port, fsm_cur_st);
+  }
+
   return 0;
 }
 

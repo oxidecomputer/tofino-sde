@@ -41,6 +41,9 @@ bf_status_t port_mgr_port_enable(bf_dev_id_t dev_id,
                                  bool enable);
 void port_mgr_link_up_actions(bf_dev_id_t dev_id, bf_dev_port_t dev_port);
 void port_mgr_link_dn_actions(bf_dev_id_t dev_id, bf_dev_port_t dev_port);
+void port_mgr_fsm_actions(bf_dev_id_t dev_id,
+			  bf_dev_port_t dev_port,
+			  bf_fsm_st state);
 bf_status_t port_mgr_port_read_counter(bf_dev_id_t dev_id,
                                        bf_dev_port_t dev_port,
                                        bf_rmon_counter_t ctr_id,

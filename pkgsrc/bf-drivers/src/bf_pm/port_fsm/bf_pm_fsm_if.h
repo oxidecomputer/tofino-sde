@@ -36,6 +36,11 @@ extern "C" {
  */
 #define BF_PM_FSM_LINK_STATUS_VERBOSE_MODE 0
 
+#if 0
+/*
+ * This definition is now in bf_pm_fsm_common.h.  The old cold has been left
+ * here to simplify future merges with upstream code
+ */
 typedef enum {
 
   // DFE fsm states
@@ -84,6 +89,8 @@ typedef enum {
   BF_PM_FSM_ST_CFG_TX_MODE,
 
 } bf_pm_fsm_st;
+
+#endif
 
 /* Signature for a state handler function, executed
  *  by the FSM on each call */

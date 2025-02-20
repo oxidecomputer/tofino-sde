@@ -9,9 +9,9 @@ BASE_FMRI=pkg://oxide/internal/tofino_sde
 
 if [ $BUILD_TARBALL == 0 ];
 then
-	ARCHIVE=bf_sde.p5p
+	ARCHIVE=tofino_sde.p5p
 else
-	ARCHIVE=bf_sde.tgz
+	ARCHIVE=tofino_sde.tgz
 fi
 
 if [ -e $ARCHIVE ]; then

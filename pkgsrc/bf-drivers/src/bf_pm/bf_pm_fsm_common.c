@@ -56,6 +56,7 @@ char *bf_pm_fsm_st_to_str[BF_FSM_PORT_MAX + 1] = {
     // Special "clean-up" states
     "BF_PM_FSM_ST_ABORT                ",
     "BF_PM_FSM_ST_DISABLED             ",
+    "BF_PM_FSM_ST_CFG_TX_MODE          ",
 };
 
 char *pm_intf_fsm_st_to_str[BF_FSM_MEDIA_MAX + 1] = {

@@ -27,6 +27,7 @@
 #include <port_mgr/bf_port_if.h>
 #include <port_mgr/port_mgr_tof3/aw_lane_cfg.h>
 #include <port_mgr/bf_tof3_serdes_if.h>
+#include <bf_pm/bf_pm_fsm_common.h>
 #include "../bf_pm_fsm_if.h"
 #include "../../pm_log.h"
 

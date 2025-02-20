@@ -82,6 +82,7 @@ typedef enum {
   // Special "clean-up" states
   BF_PM_FSM_ST_ABORT,
   BF_PM_FSM_ST_DISABLED,
+  BF_PM_FSM_ST_CFG_TX_MODE,
 } bf_pm_fsm_st;
 
 #define BF_FSM_PORT_MAX BF_PM_FSM_ST_DISABLED

@@ -21,6 +21,7 @@
 extern "C" {
 #include <stdio.h>
 #include <tofino/bf_pal/bf_pal_port_intf.h>
+#include <bf_pm/bf_pm_fsm_common.h>
 #include <bf_pm/bf_pm_intf.h>
 #include <tofino/bf_pal/bf_pal_types.h>
 #include <tofino/pdfixed/pd_devport_mgr.h>

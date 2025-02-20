@@ -24,6 +24,7 @@
 #include <bf_types/bf_types.h>
 #include <dvm/bf_drv_intf.h>
 #include <port_mgr/bf_port_if.h>
+#include <bf_pm/bf_pm_fsm_common.h>
 #include "../bf_pm_fsm_if.h"
 #include "../../bf_pm.h"
 #include "../../pm_log.h"
