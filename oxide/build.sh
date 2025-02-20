@@ -17,8 +17,15 @@ function configure_build {
 	# We only want to build the sidecar code on helios
 if [ $ILLUMOS -eq 0 ]; then
 	BSP=OFF
+	LINKER_FLAGS=""
+	ABSL_DIR="-Dabsl_DIR=/usr/lib/x86_64-linux-gnu/cmake/absl"
+	CXX_FLAGS="-I${SDE}/oxide/rapidjson/include"
+	C_FLAGS=""
 else
 	BSP=ON
+	LINKER_FLAGS="-lnsl -lsocket"
+	CXX_FLAGS="-D__EXTENSIONS__ -I${SDE}/oxide/rapidjson/include"
+	C_FLAGS="-D__EXTENSIONS__ -D_POSIX_PTHREAD_SEMANTICS"
 fi
 
 	cd ${SDE}/build
@@ -41,6 +48,7 @@ fi
 		-DBSP=$BSP \
 		-DRAPIDJSON_DIR=$RAPIDJSON_DIR/include \
 		-DP4C_USE_PREINSTALLED_ABSEIL=ON  \
+		${ABSL_DIR} \
 		-DP4C_USE_PREINSTALLED_PROTBUF=OFF  \
 		-DUSE_PREINSTALLED_PROTBUF=OFF  \
 		-DBoost_INCLUDE_DIRS=/opt/ooce/boost/include  \
@@ -48,9 +56,9 @@ fi
 		-DCMAKE_BUILD_TYPE='Release' \
 		-DCMAKE_LINKER='lld' \
 		-DCMAKE_INSTALL_PREFIX=$SDE/install \
-		-DCMAKE_CXX_FLAGS="-D__EXTENSIONS__ -I${SDE}/oxide/rapidjson/include" \
-		-DCMAKE_C_FLAGS="-D__EXTENSIONS__ -D_POSIX_PTHREAD_SEMANTICS" \
-		-DCMAKE_EXE_LINKER_FLAGS="-lnsl -lsocket"
+		-DCMAKE_CXX_FLAGS=$CXX_FLAGS \
+		-DCMAKE_C_FLAGS=$C_FLAGS \
+		-DCMAKE_EXE_LINKER_FLAGS=${LINKER_FLAGS}
 }
 
 function build {
@@ -93,7 +101,7 @@ done
 if [ `uname -s` == SunOS ]; then
 	export ILLUMOS=1
 	export MAKE=gmake
-	export PATH=${PATH}:/usr/lib/python3.11/bin:/usr/gnu/bin/:~/.local/bin
+	#export PATH=${PATH}:/usr/lib/python3.11/bin:/usr/gnu/bin/:~/.local/bin
 	echo Wrapping wrap_libport_mgr_hw
 	(cd wrap_libport_mgr_hw ; gmake install)
 else
@@ -102,12 +110,15 @@ else
 	alias gmake=make
 fi
 
+export PATH=${SDE}/oxide/python_venv/bin:${PATH}/usr/gnu/bin/:~/.local/bin
 RAPIDJSON_DIR=${SDE}/oxide/rapidjson
 if [ ! -d $RAPIDJSON_DIR ]; then
 	(cd ${SDE}/oxide ; git clone https://github.com/Tencent/rapidjson.git)
 fi
 
-# pfexec pkg install boost
+# helios: pfexec pkg install boost
+# linux: sudo apt install cmake python3-distutils
+# both: pip3 install jsl
 configure_build
 
 # [ $ILLUMOS -eq 1 ] && illumos_fixup_cmake
