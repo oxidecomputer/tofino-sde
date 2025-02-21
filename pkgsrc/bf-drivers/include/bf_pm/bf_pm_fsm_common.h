@@ -85,7 +85,7 @@ typedef enum {
   BF_PM_FSM_ST_CFG_TX_MODE,
 } bf_pm_fsm_st;
 
-#define BF_FSM_PORT_MAX BF_PM_FSM_ST_DISABLED
+#define BF_FSM_PORT_MAX BF_PM_FSM_ST_CFG_TX_MODE
 
 extern char *bf_pm_fsm_st_to_str[];
 extern char *bf_pm_fsm_state_to_str(bf_pm_fsm_st st);

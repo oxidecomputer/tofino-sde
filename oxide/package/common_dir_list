@@ -30,6 +30,9 @@ lib
 share
 share/cli
 share/cli/xml
+share/p4c
+share/p4c/p4c_src
+share/p4c/p4include
 share/tofino_sds_fw
 share/tofino_sds_fw/credo
 share/tofino_sds_fw/credo/firmware

@@ -162,7 +162,7 @@ bf_status_t bf_knet_tx_action_get(const bf_knet_cpuif_t UNUSED(knet_cpuif_id),
 
 #else //__sun
 
-static iline bf_status_t bf_knet_status_to_status(
+static inline bf_status_t bf_knet_status_to_status(
     bf_knet_status_t knet_status) {
   bf_status_t status = BF_SUCCESS;
 

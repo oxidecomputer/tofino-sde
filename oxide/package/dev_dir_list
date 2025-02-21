@@ -1,7 +1,0 @@
-bin
-lib
-share
-share/p4c
-share/p4c/p4c_src
-share/p4c/p4include
-share/p4c/p4include/tofino

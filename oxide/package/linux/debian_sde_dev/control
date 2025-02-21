@@ -1,9 +1,0 @@
-Source: bf-sde-dev
-Maintainer: Nils Nieuwejaar <nils@oxidecomputer.com>
-Section: misc
-Priority: optional
-Package: bf-sde-dev
-Version: _version_
-Architecture: amd64
-Depends: 
-Description: Tofino SDE bits needed to build the p4 code and run the model

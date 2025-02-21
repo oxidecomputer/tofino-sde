@@ -1,3 +1,4 @@
+include/bf_bd_cfg/bf_bd_cfg_intf.h
 include/bf_pltfm_types/bf_pltfm_types.h
 include/bf_pltfm/bf_pltfm_bd_cfg.h
 include/bf_qsfp/bf_qsfp.h

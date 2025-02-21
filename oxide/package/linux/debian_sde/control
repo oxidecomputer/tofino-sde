@@ -1,8 +1,8 @@
-Source: bf-sde
+Source: tofino-sde
 Maintainer: Nils Nieuwejaar <nils@oxidecomputer.com>
 Section: misc
 Priority: optional
-Package: bf-sde
+Package: tofino-sde
 Version: _version_
 Architecture: amd64
 Depends: 
