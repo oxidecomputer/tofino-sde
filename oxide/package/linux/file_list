@@ -1,1 +1,4 @@
 bin/tofino-model
+lib/libcli.so
+lib/libcli.so.1.10
+lib/libcli.so.1.10.4

@@ -88,6 +88,7 @@ for d in `cat $TOOL_ROOT/common_dir_list` `cat $TOOL_ROOT/helios/dir_list`; do
 	/usr/bin/mkdir -p $BUILD_DIR/opt/oxide/tofino_sde/$d
 done
 for f in `cat $TOOL_ROOT/common_file_list` `cat $TOOL_ROOT/helios/file_list`; do
+	echo /usr/bin/cp $SDE_INSTALL/$f $BUILD_DIR/opt/oxide/tofino_sde/$f
 	/usr/bin/cp $SDE_INSTALL/$f $BUILD_DIR/opt/oxide/tofino_sde/$f
 done
 git rev-list HEAD -1 > $BUILD_DIR/opt/oxide/tofino_sde/version

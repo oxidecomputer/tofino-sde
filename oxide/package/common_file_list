@@ -201,9 +201,6 @@ lib/bfshell_plugin_clish.so
 lib/bfshell_plugin_pipemgr.so
 lib/libbfutils.so
 lib/libclish.so
-lib/libcli.so
-lib/libcli.so.1.10
-lib/libcli.so.1.10.4
 lib/libdriver.so
 lib/libdru_sim.so
 lib/libtarget_sys.so
