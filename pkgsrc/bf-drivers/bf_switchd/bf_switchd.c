@@ -1098,6 +1098,14 @@ static void bf_switchd_ports_add_to_model(bf_dev_id_t dev_id) {
   /* Figure out how many pipelines present on this device */
   lld_sku_get_num_active_pipes(dev_id, &num_pipes);
 
+#ifdef __sun
+  char *tmp_name;
+  if ((tmp_name = find_tofino_device()) == NULL)
+	  return (BF_INVALID_ARG);
+
+  snprintf(bf_name, sizeof(bf_name), tmp_name);
+  free(tmp_name);
+#else
   if (switchd_ctx->asic[dev_id].chip_family == BF_DEV_FAMILY_TOFINO3) {
     max_port = lld_get_max_fp_port(dev_id);
     port_step = 2;
@@ -3568,6 +3576,13 @@ static void bf_switchd_accton_diag_lib_init(bf_dev_id_t dev_id) {
   switchd_state_t *state = &(switchd_ctx->state[dev_id]);
   agent_init_fn_t agent_init_fn;
   int ret = 0;
+  int is_master;
+
+#if __sun
+  is_master = 1;
+#else
+  is_master = !kernel_pkt_proc;
+#endif
 
   if (switchd_ctx->args.skip_p4) {
     bf_sys_log_and_trace(BF_MOD_SWITCHD, BF_LOG_DBG, "Skip mav diag lib init");
@@ -5227,6 +5242,7 @@ static int bf_switchd_driver_init(bool kernel_pkt_proc) {
                           switchd_ctx->args.server_listen_local_only);
 #endif
 #endif
+#endif
 
   return 0;
 }
@@ -5331,6 +5347,7 @@ static int bf_switchd_find_dru_sim_fn(void *dru_sim_handle) {
   return 0;
 #endif  // STATIC_LINK_LIB
 }
+#endif // __sun
 
 /* Initialize DMA simulation service */
 static int bf_switchd_dru_sim_init(void) {
@@ -5669,6 +5686,7 @@ static bf_status_t bf_switchd_sysfs_cpuif_name_get(char *file_node,
         return BF_SUCCESS;
       }
     }
+#endif
   }
   return BF_OBJECT_NOT_FOUND;
 }
@@ -6032,6 +6050,7 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
           sts);
       return sts;
     }
+#endif /* __sun */
   }
 
   /* Initialize system services */
@@ -6056,6 +6075,7 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
     if (switchd_ctx) free(switchd_ctx);
     return ret;
   }
+#endif
 
   bf_switchd_set_dflt_skip_options();
 
@@ -6192,6 +6212,17 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
           switchd_ctx->asic[dev_id].subdev_pres_msk |= (1 << subdev_id);
         }
       }
+#else
+	if (switchd_ctx->args.kernel_pkt) {
+		int resetting = 0;
+		printf("activating tfpkt\n");
+		int dev_fd = (&(switchd_ctx->pcie_map[dev_id][0]))->dev_fd;
+		if (ioctl(dev_fd, BF_PKT_INIT, &resetting) != 0) {
+			printf("failed to enable tbus access: %s\n",
+			    strerror(errno));
+		}
+	}
+#endif
     }
   }
 
