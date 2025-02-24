@@ -44,6 +44,9 @@ void port_mgr_link_dn_actions(bf_dev_id_t dev_id, bf_dev_port_t dev_port);
 void port_mgr_fsm_actions(bf_dev_id_t dev_id,
 			  bf_dev_port_t dev_port,
 			  bf_fsm_st state);
+void port_mgr_presence_actions(bf_dev_id_t dev_id,
+			  bf_dev_port_t dev_port,
+			  bool presence);
 bf_status_t port_mgr_port_read_counter(bf_dev_id_t dev_id,
                                        bf_dev_port_t dev_port,
                                        bf_rmon_counter_t ctr_id,

@@ -656,6 +656,30 @@ static int pm_dm_set_fsm(bf_dev_id_t dev_id,
 }
 
 /************************************************************************
+ * pm_dm_set_presence
+ *
+ * Set the presence-detect bit of the specified port.  If the value
+ * changes, notify the port manager.
+ ************************************************************************/
+static int pm_dm_set_presence(bf_dev_id_t dev_id,
+                         bf_dev_port_t dev_port,
+                         bool presence) {
+  pm_port_t *pm_port_p = pm_dm_find(dev_id, dev_port);
+  bool old_presence;
+
+  if (pm_port_p == NULL) return -1;
+  if (!pm_port_p->added) return -2;
+
+  old_presence = pm_port_p->presence;
+  pm_port_p->presence = presence;
+
+  if (presence != old_presence)
+    port_mgr_presence_actions(dev_id, dev_port, presence);
+
+  return 0;
+}
+
+/************************************************************************
  * pm_dm_get_stats_curr_area
  *
  * Return a pointer to the bf_rmon_counter_array_t that is marked as
@@ -779,6 +803,51 @@ bf_status_t pm_port_status_chg_cb(bf_dev_id_t dev_id,
   return BF_SUCCESS;
 }
 
+/*
+ * Periodically poll the presence-detect bit for this port, so we can notify dvm
+ * clients if/when it changes.  Ideally this transition would be addressed by a
+ * callback from the platform layer when it happens, but the design of the
+ * platform interface doesn't provide any mechanism for callbacks.
+ */
+static uint32_t port_presence_poll(void *context) {
+  bf_dev_port_t dev_port;
+  bf_pal_front_port_handle_t port_hdl;
+  bool presence;
+  bf_status_t sts;
+
+  dev_port = (bf_dev_port_t)(uintptr_t)context;
+  if (dev_port < 0 || dev_port >= BF_PORT_COUNT) {
+    PM_ERROR("invalid dev_port: %d", dev_port);
+    return (0);
+  }
+
+  sts = bf_pm_port_dev_port_to_front_panel_port_get(0, dev_port, &port_hdl);
+  if (sts != BF_SUCCESS) {
+    PM_ERROR("failed to look up fp for %d: %s (%d)",
+	dev_port,
+	bf_err_str(sts), sts);
+    return (0);
+  }
+
+  sts = bf_pm_port_presence_get(0, &port_hdl, &presence);
+  if (sts != BF_SUCCESS) {
+    PM_ERROR("failed to get presence for %d (%u/%u): %s (%d)",
+	dev_port, port_hdl.conn_id, port_hdl.chnl_id,
+	bf_err_str(sts), sts);
+    return (0);
+  }
+  sts = pm_dm_set_presence(0, dev_port, presence);
+  if (sts != BF_SUCCESS) {
+    PM_ERROR("failed to update presence for %d: (%u/%u) %s (%d)",
+	dev_port, port_hdl.conn_id, port_hdl.chnl_id,
+	bf_err_str(sts), sts);
+    return (0);
+  }
+
+  // poll the presence bit every 200ms
+  return (200 * 1000);
+}
+
 /************************************************************************
  * pm_port_add
  *
@@ -843,6 +912,9 @@ bf_status_t pm_port_add(bf_dev_id_t dev_id,
   } else {
     bf_port_errored_block_thresh_set(dev_id, dev_port, 50);
   }
+
+  pm_tasklet_new(port_presence_poll, (void *)(uintptr_t)dev_port, HI_PRI);
+
   // Surrender exclusive access of the port
   pm_dm_exclusive_access_end(dev_id, dev_port);
   return BF_SUCCESS;
@@ -873,6 +945,10 @@ bf_status_t pm_port_rmv(bf_dev_id_t dev_id,
   int iter = 0;
   // Gain exclusive access to the port
   pm_dm_exclusive_access_start(dev_id, dev_port);
+
+  // remove the presence-polling tasklet
+  pm_tasklet_rmv((void *)(uintptr_t)dev_port);
+  pm_dm_set_presence(0, dev_port, false);
 
   bf_port_bind_status_change_cb(dev_id, dev_port, NULL, NULL);
 

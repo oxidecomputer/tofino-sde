@@ -175,6 +175,7 @@ bf_status_t pltfm_mgr_init(bf_switchd_context_t *switchd_ctx) {
     bf_pm_interface.pltfm_deinit = 0;
     bf_pm_interface.pltfm_mac_to_multi_serdes_map_get =
         &bf_bd_cfg_mac_to_multi_serdes_map_get;
+    bf_pm_interface.pltfm_port_presence_get = &bf_pm_pltfm_port_presence_get;
 
     // atexit(pltfm_mgr_exit); // not tested
 

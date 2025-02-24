@@ -9326,6 +9326,47 @@ bf_status_t bf_pm_port_media_type_get(bf_dev_id_t dev_id,
   return BF_SUCCESS;
 }
 
+/*
+ * Call into the platform code to get the presence-detect bit for the specified
+ * port.
+ */
+bf_status_t bf_pm_port_presence_get(bf_dev_id_t dev_id,
+                                      bf_pal_front_port_handle_t *port_hdl,
+                                      bool *presence) {
+  bf_pm_port_info_t *port_info;
+  bf_status_t sts;
+  bf_dev_id_t dev_id_of_port = 0;
+
+  // Safety checks
+  if (dev_id < 0) return BF_INVALID_ARG;
+  if (dev_id >= BF_MAX_DEV_COUNT) return BF_INVALID_ARG;
+  if (!port_hdl) return BF_INVALID_ARG;
+  if (!presence) return BF_INVALID_ARG;
+
+  port_info = pm_port_info_get_from_port_hdl(port_hdl, &dev_id_of_port);
+  if (dev_id_of_port != dev_id) {
+    PM_ERROR("%s Warning: : %d/%d found on dev %d : exp dev%d", __func__,
+             port_hdl->conn_id, port_hdl->chnl_id,
+             dev_id_of_port, dev_id);
+  }
+
+  if (!pltfm_interface.pltfm_port_presence_get) {
+	  *presence = true;
+	  return BF_SUCCESS;
+  }
+
+  sts = pltfm_interface.pltfm_port_presence_get(port_hdl, presence);
+  if (sts != BF_SUCCESS) {
+    PM_ERROR(
+        "Unable to get the presence bit for front port : %d/%d (%d): %s (%d)",
+        port_hdl->conn_id, port_hdl->chnl_id, port_info->dev_port,
+        bf_err_str(sts), sts);
+    return sts;
+  }
+
+  return BF_SUCCESS;
+}
+
 bf_status_t bf_pm_num_max_ports_get(bf_dev_id_t dev_id, uint32_t *num_ports) {
   // Safety checks
   if (dev_id < 0) return BF_INVALID_ARG;

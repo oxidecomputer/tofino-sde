@@ -275,6 +275,24 @@ void port_mgr_fsm_actions(bf_dev_id_t dev_id, bf_dev_port_t dev_port,
   }
 }
 
+/**************************************************************************
+ * port_mgr_presence_actions
+ *
+ * All actions to be effected upon an update to a port's presence-detect bit
+ **************************************************************************/
+void port_mgr_presence_actions(bf_dev_id_t dev_id, bf_dev_port_t dev_port,
+    bool presence) {
+  port_mgr_port_callback_t fn;
+  void *userdata;
+
+  port_mgr_dev_port_cb_get(dev_id, &fn, &userdata);
+
+  if (fn) {
+    fn(dev_id, dev_port, PORT_MGR_PORT_PRESENCE_UPDATE, (uint32_t) presence,
+	userdata);
+  }
+}
+
 /** \brief port_mgr_port_read_counter
  *         HW (sync) MAC counter read
  *

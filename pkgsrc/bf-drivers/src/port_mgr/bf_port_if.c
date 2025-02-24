@@ -3469,6 +3469,8 @@ static bf_status_t bf_port_tof2_oper_state_get_internal(bf_dev_id_t dev_id,
   bool is_sw_model = false;
 
   bool is_emulator = false;
+  bool sig_detect = false, phy_ready = false;
+  int num_lanes;
 
   bf_drv_device_type_get(dev_id, &is_sw_model);
 #if defined(DEVICE_IS_EMULATOR)  // Emulator
@@ -3480,6 +3482,23 @@ static bf_status_t bf_port_tof2_oper_state_get_internal(bf_dev_id_t dev_id,
     rc = port_mgr_tof2_port_oper_state_get(dev_id, dev_port, &up);
     *state = up ? 1 : 0;
   }
+    if (rc != BF_SUCCESS) return rc;
+
+    if (!up) {
+      return rc;
+    }
+
+    // If link state is up, then validate serdes status as well
+    rc = bf_port_num_lanes_get(dev_id, dev_port, &num_lanes);
+    for (int ln = 0; ln < num_lanes; ln++) {
+      rc = port_mgr_tof2_serdes_sig_detect_get(
+          dev_id, dev_port, ln, &sig_detect, &phy_ready);
+      if (rc != BF_SUCCESS) continue;
+      if (!sig_detect || !phy_ready) {
+        *state = 0;
+        return rc;
+      }
+    }
   return rc;
 }
 
@@ -3540,6 +3559,8 @@ static bf_status_t bf_port_tof2_oper_state_get_extended_internal(
   bool is_sw_model = false;
   port_mgr_port_t *port_p;
   bool up = false;
+  bool sig_detect = false, phy_ready = false;
+  int num_lanes;
 
   if (!state || !pcs_ready) return BF_INVALID_ARG;
 
@@ -3564,9 +3585,30 @@ static bf_status_t bf_port_tof2_oper_state_get_extended_internal(
       if (l_fault) *l_fault = false;
       if (r_fault) *r_fault = false;
     } else {
+      *state = 0;
+      *pcs_ready = false;
+      if (l_fault) *l_fault = false;
+      if (r_fault) *r_fault = false;
       rc = port_mgr_tof2_port_oper_state_extended_get(
           dev_id, dev_port, &up, pcs_ready, l_fault, r_fault);
+      if (rc != BF_SUCCESS) return rc;
+
       *state = up ? 1 : 0;
+      if (!up) {
+        return rc;
+      }
+
+      // If link state is up, then validate serdes status as well
+      rc = bf_port_num_lanes_get(dev_id, dev_port, &num_lanes);
+      for (int ln = 0; ln < num_lanes; ln++) {
+        rc = port_mgr_tof2_serdes_sig_detect_get(
+            dev_id, dev_port, ln, &sig_detect, &phy_ready);
+        if (rc != BF_SUCCESS) continue;
+        if (!sig_detect || !phy_ready) {
+          *state = 0;
+          return rc;
+        }
+      }
     }
   }
   return rc;

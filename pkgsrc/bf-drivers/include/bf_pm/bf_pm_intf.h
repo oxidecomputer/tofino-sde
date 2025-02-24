@@ -817,6 +817,19 @@ bf_status_t bf_pm_port_media_type_get(bf_dev_id_t dev_id,
                                       bf_media_type_t *media_type);
 
 /**
+ * @brief Get the state of the port's presence-detect bit
+ *
+ * @param dev_id Device id
+ * @param port_hdl Front panel port number
+ * @param presence Contents of the presence-detect bit
+ *
+ * @return Status of the API call
+ */
+bf_status_t bf_pm_port_presence_get(bf_dev_id_t dev_id,
+                                      bf_pal_front_port_handle_t *port_hdl,
+                                      bool *presence);
+
+/**
  * @brief Get the number of ports on the chip depending on the efuse.
  *        Includes front and internal ports on the chip.
  * @param dev_id Device id

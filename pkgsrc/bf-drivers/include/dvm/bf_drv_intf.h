@@ -946,6 +946,9 @@ typedef bf_status_t (*bf_drv_err_intr_hdl_mode_cb)(bf_dev_id_t dev_id,
 typedef bf_status_t (*bf_drv_port_fsm_cb)(bf_dev_id_t dev_id,
 						bf_dev_port_t port,
 						int state);
+typedef bf_status_t (*bf_drv_port_presence_cb)(bf_dev_id_t dev_id,
+                                                 bf_dev_port_t port,
+                                                 bool presence);
 
 typedef bf_status_t (*bf_drv_rcfg_step_cb)(bf_dev_id_t dev_id);
 
@@ -977,6 +980,7 @@ typedef struct bf_drv_client_callbacks_s {
   bf_drv_port_speed_int_cb port_speed;
   bf_drv_port_admin_state_cb port_admin_state;
   bf_drv_port_fsm_cb port_fsm;
+  bf_drv_port_presence_cb port_presence;
   bf_drv_err_intr_hdl_mode_cb err_intr_mode;
 
   /* Fast reconfig callbacks */

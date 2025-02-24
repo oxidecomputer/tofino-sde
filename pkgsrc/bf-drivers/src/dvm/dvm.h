@@ -120,6 +120,7 @@ typedef struct bf_drv_app_ {
   bf_drv_port_mode_change_complete_cb port_mode_change_complete;
   void *port_status_cookie;
   void *port_speed_cookie;
+  void *port_fsm_cookie;
   void *port_mode_change_cookie;
   void *port_mode_change_complete_cookie;
 } bf_drv_app_t;
@@ -181,7 +182,7 @@ bf_status_t bf_drv_notify_clients_port_del(bf_dev_id_t dev_id,
 void bf_drv_notify_clients_port_status_chg(bf_dev_id_t dev_id,
                                            bf_dev_port_t port_id,
                                            port_mgr_port_event_t event,
-					   uint32_t eventdata,
+                                           uint32_t eventdata,
                                            void *userdata);
 bf_status_t bf_drv_notify_clients_port_serdes_upgrade(
     bf_dev_id_t dev_id,

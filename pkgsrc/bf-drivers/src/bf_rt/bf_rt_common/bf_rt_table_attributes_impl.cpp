@@ -26,6 +26,9 @@
 #include "bf_rt_table_impl.hpp"
 #include "bf_rt_state.hpp"
 
+#include <array>
+#include <bitset>
+
 namespace bfrt {
 
 BfRtTableEntryScopeArgumentsImpl::BfRtTableEntryScopeArgumentsImpl(

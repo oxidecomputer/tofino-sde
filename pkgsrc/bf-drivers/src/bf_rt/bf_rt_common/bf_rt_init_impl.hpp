@@ -28,6 +28,7 @@ extern "C" {
 #include <string>
 #include <unordered_map>
 #include <functional>
+#include <array>
 
 #include <bf_rt/bf_rt_info.hpp>
 #include <bf_rt/bf_rt_init.hpp>

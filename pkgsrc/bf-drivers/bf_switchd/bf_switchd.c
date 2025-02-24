@@ -21,6 +21,7 @@
 /*
     bf_switchd.c
 */
+
 /* Standard includes */
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -2405,7 +2406,7 @@ cleanup_exit_1:
     }
   }
 no_cleanup_exit_1:
-  exit(1);
+ return -1;
 }
 
 #ifdef TOFINO3_MULTI_SUBDEV_MODE
@@ -2836,11 +2837,6 @@ bf_status_t bf_switchd_device_add(bf_dev_id_t dev_id, bool setup_dma) {
               "ERROR: dma init failed for dev_id %d subdev_id %d",
               dev_id,
               i);
-          for (int j = i - 1; j >= 0; j--) {
-            if (switchd_ctx->pcie_map[dev_id][j].configured) {
-              bf_switchd_release_dma_mem(dev_id, j);
-            }
-          }
           bf_unmap_dev(dev_id);
           bf_switchd_free_device_profile(&dev_profile);
           return BF_NO_SYS_RESOURCES;
@@ -2955,6 +2951,7 @@ static int bf_switchd_check_for_interrupts_or_timeout(
     fd_set *dev_fd_set_p, uint32_t timeout_value_us) {
   int err;
   struct timeval tv;
+  static struct timeval warned_at = {0, 0};
   int maxfd = 0;
   bf_dev_id_t dev_id = 0;
   switchd_state_t *dev_state;
@@ -4636,7 +4633,7 @@ static void *bf_switchd_process_async_int_notifs(void *arg) {
 
   /* Device interrupt processing loop */
   while (1) {
-    bf_switchd_check_for_interrupts_or_timeout(&dev_fd_set, 1000);
+    bf_switchd_check_for_interrupts_or_timeout(&dev_fd_set, 100);
 
     for (dev_id = 0; dev_id < BF_MAX_DEV_COUNT; dev_id++) {
       dev_state = &(switchd_ctx->state[dev_id]);
@@ -4933,6 +4930,13 @@ static int bf_switchd_pltfm_device_type_get(void) {
 
 static int bf_switchd_device_type_get(void) {
   int ret = 0;
+  int is_master;
+
+#if __sun
+  is_master = 1;
+#else
+  is_master = !kernel_pkt_proc;
+#endif
 
   /* Check the PAL handler registration to get device type */
   ret = bf_switchd_pal_device_type_get();
@@ -5096,7 +5100,7 @@ static int bf_switchd_driver_init(bool kernel_pkt_proc) {
 
   /* Initialize the PCIe Packet Driver (pkt_mgr) */
   if (!kernel_pkt_proc && !switchd_ctx->args.skip_hld.pkt_mgr) {
-    bf_pkt_init();
+    ret = bf_pkt_init();
     if (ret != 0) {
       bf_sys_log_and_trace(
           BF_MOD_SWITCHD, BF_LOG_ERR, "ERROR: bf_pkt_init failed : %d", ret);
@@ -5342,7 +5346,8 @@ static int bf_switchd_dru_sim_init(void) {
   }
 
   /* Initialize the dru_sim library */
-  ret = dru_sim_init(switchd_ctx->args.tcp_port_base, bf_dma2virt_dbg);
+  ret = dru_sim_init(switchd_ctx->args.model_ip, switchd_ctx->args.tcp_port_base,
+    bf_dma2virt_dbg);
   if (ret != 0) {
     bf_sys_log_and_trace(
         BF_MOD_SWITCHD, BF_LOG_ERR, "ERROR: DRU sim initialization failed");
@@ -5520,6 +5525,7 @@ static int bf_switchd_sys_init(void) {
 #endif
 #endif
 #endif
+#endif
 
   return 0;
 }
@@ -5641,6 +5647,7 @@ static void setup_pci_err_handler() {
   pci_err_action.sa_flags = SA_SIGINFO;
   sigaction(SIGIO, &pci_err_action, NULL);
 }
+#endif // __sun
 
 #ifndef __sun
 static bf_status_t bf_switchd_sysfs_cpuif_name_get(char *file_node,
@@ -5882,6 +5889,7 @@ static void bf_switchd_set_dflt_skip_options() {
       default:
         break;
     }
+#endif
   }
 }
 
@@ -6261,6 +6269,7 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
       /* Setup pci error handler */
       setup_pci_err_handler();
     }
+#endif /* __sun */
   }
 
   /* sleep for 3 seconds to allow other slow i2c operations to be over if
@@ -6320,6 +6329,7 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
       break;
     }
   }
+#endif
 
   if (switchd_ctx->args.shell_before_dev_add) {
     /* Start the driver shell before devices are added. */
@@ -6358,6 +6368,17 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
             bf_err_str(sts),
             dev_id);
       }
+#else
+	if (switchd_ctx->args.kernel_pkt) {
+		int resetting = 0;
+		printf("activating tfpkt\n");
+		int dev_fd = (&(switchd_ctx->pcie_map[dev_id][0]))->dev_fd;
+		if (ioctl(dev_fd, BF_PKT_INIT, &resetting) != 0) {
+			printf("failed to enable tbus access: %s\n",
+			    strerror(errno));
+		}
+	}
+#endif
     }
     /* Add device */
     sts = bf_switchd_device_add(dev_id, true);

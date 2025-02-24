@@ -4809,10 +4809,11 @@ static pipe_status_t pipe_mgr_stat_mgr_update_ent_hdl_count(
    * also must be done on the deferred location since that is where stats_mgr is
    * currently tracking the entry. */
   pipe_mgr_stat_ent_location_t *traverser = ent_hdl_loc->locations;
-  while (traverser) {
+  for (pipe_mgr_stat_ent_location_t *traverser = ent_hdl_loc->locations;
+       traverser != NULL;
+       traverser = traverser->next) {
     /* Skip deleted entries. */
     if (traverser->entry_del_in_progress) {
-      traverser = traverser->next;
       continue;
     }
     /* If the entry is committed, clear its count. */
@@ -4833,7 +4834,6 @@ static pipe_status_t pipe_mgr_stat_mgr_update_ent_hdl_count(
        * a hardware location yet. */
       if (set_in_prog) traverser->def_set_in_prog++;
     }
-    traverser = traverser->next;
   }
   PIPE_MGR_UNLOCK(&stat_tbl_instance->ent_hdl_loc_mtx);
 

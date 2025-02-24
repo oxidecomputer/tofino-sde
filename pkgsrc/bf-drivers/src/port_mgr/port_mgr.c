@@ -21,6 +21,7 @@
 #include <dvm/bf_drv_intf.h>
 #include <dvm/dvm_intf.h>
 #include <port_mgr/port_mgr_intf.h>
+#include <port_mgr/bf_fsm_if.h>
 #include <lld/bf_dev_if.h>
 #include <bf_types/bf_types.h>
 #include <port_mgr/bf_fsm_if.h>

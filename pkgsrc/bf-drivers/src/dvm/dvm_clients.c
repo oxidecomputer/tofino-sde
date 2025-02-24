@@ -927,9 +927,11 @@ void bf_drv_notify_clients_port_status_chg(bf_dev_id_t dev_id,
   bf_drv_client_t *db_ptr = NULL;
   bf_status_t client_status = BF_SUCCESS;
   bool status_event = false, speed_event = false, fsm_event = false;
+  bool presence_event = false;
   bool port_up = false;
   bf_port_speed_t speed = 0;
   bf_fsm_st fsm_state;
+  bool presence = false;
 
   (void)userdata;
   if (event == PORT_MGR_PORT_EVT_UP) {
@@ -945,6 +947,9 @@ void bf_drv_notify_clients_port_status_chg(bf_dev_id_t dev_id,
   } else if (event == PORT_MGR_PORT_FSM_TRANSITION) {
     fsm_event = true;
     fsm_state = (bf_fsm_st) event_data;
+  } else if (event == PORT_MGR_PORT_PRESENCE_UPDATE) {
+    presence_event = true;
+    presence = (bool) event_data;
   }
 
   for (id = BF_DRV_MAX_CLIENTS - 1; id >= 0; id--) {
@@ -964,8 +969,7 @@ void bf_drv_notify_clients_port_status_chg(bf_dev_id_t dev_id,
             client_status,
             db_ptr->client_name);
       }
-    }
-    if ((speed_event) && (db_ptr->callbacks.port_speed)) {
+    } else if ((speed_event) && (db_ptr->callbacks.port_speed)) {
       client_status = db_ptr->callbacks.port_speed(dev_id, port_id);
       if (client_status != BF_SUCCESS) {
         LOG_ERROR(
@@ -989,7 +993,18 @@ void bf_drv_notify_clients_port_status_chg(bf_dev_id_t dev_id,
             client_status,
             db_ptr->client_name);
       }
-    }
+    } else if ((presence_event) && (db_ptr->callbacks.port_presence)) {
+      client_status = db_ptr->callbacks.port_presence(dev_id, port_id, presence);
+      if (client_status != BF_SUCCESS) {
+        LOG_ERROR(
+            "Port presence handling failed for dev %d, port %d,"
+            " sts %s (%d), Client %s ",
+            dev_id,
+            port_id,
+            bf_err_str(client_status),
+            client_status,
+            db_ptr->client_name);
+      }
   }
 
   /* Notify app also */
