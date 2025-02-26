@@ -40,7 +40,7 @@ function prework() {
         echo Wrapping wrap_libport_mgr_hw
 	cp $X/libport_mgr_hw.so $X/libport_mgr_hw.so.orig
 	cp $X/libport_mgr_hw.a $X/libport_mgr_hw.a.orig
-        (cd wrap_libport_mgr_hw ; gmake clean; gmake install)
+        (cd ${SDE}/oxide/wrap_libport_mgr_hw ; gmake clean; gmake install)
     fi
 
     RAPIDJSON_DIR=${SDE}/oxide/rapidjson
