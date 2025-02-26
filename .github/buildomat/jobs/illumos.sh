@@ -23,8 +23,9 @@ set -o xtrace
 
 export PATH=$PATH:/home/build/.local/bin
 banner "packages"
-wget -p /tmp https://oxide-tofino-build.s3.us-west-2.amazonaws.com/boost.tar.gz
-(cd / ; pfexec tar xfvz /tmp/boost.tar.gz)
+pwd
+wget https://oxide-tofino-build.s3.us-west-2.amazonaws.com/boost.tar.gz
+(cd / ; pfexec tar xfvz /work/oxidecomputer/tofino-sde/boost.tar.gz)
 pfexec pkg install cmake gcc-12 bdw-gc pyinstaller
 python -m pip install jsl
 
