@@ -1005,6 +1005,7 @@ void bf_drv_notify_clients_port_status_chg(bf_dev_id_t dev_id,
             client_status,
             db_ptr->client_name);
       }
+    }
   }
 
   /* Notify app also */

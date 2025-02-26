@@ -1098,22 +1098,6 @@ static void bf_switchd_ports_add_to_model(bf_dev_id_t dev_id) {
   /* Figure out how many pipelines present on this device */
   lld_sku_get_num_active_pipes(dev_id, &num_pipes);
 
-#ifdef __sun
-  char *tmp_name;
-  if ((tmp_name = find_tofino_device()) == NULL)
-	  return (BF_INVALID_ARG);
-
-  snprintf(bf_name, sizeof(bf_name), tmp_name);
-  free(tmp_name);
-#else
-  if (switchd_ctx->asic[dev_id].chip_family == BF_DEV_FAMILY_TOFINO3) {
-    max_port = lld_get_max_fp_port(dev_id);
-    port_step = 2;
-  } else {
-    max_port = BF_PIPE_PORT_COUNT - 1;
-    port_step = 1;
-  }
-
   /* Add a all of device's ports across all pipelines present */
   for (uint32_t pipe = 0; pipe < num_pipes; pipe++) {
     for (int port = 0; port <= max_port; port += port_step) {
@@ -1548,7 +1532,6 @@ static void bf_switchd_ports_delete(bf_dev_id_t dev_id) {
   }
 }
 
-#if 0
 static int sanitize_serdes_file_name(const char *path_prefix,
                                      const char *path,
                                      const char *f_name,
@@ -1596,7 +1579,6 @@ static int sanitize_serdes_file_name(const char *path_prefix,
   free(real_path);
   return 0;
 }
-#endif
 
 /* Helper routine to initialize the bf_device_profile_t structure used to add a
  * device to the driver. */
@@ -1605,7 +1587,6 @@ static bf_status_t bf_switchd_init_device_profile(
   if (!switchd_ctx) return BF_NOT_READY;
 
   p4_devices_t *p4_device = &(switchd_ctx->p4_devices[dev_id]);
-#if 0
   switchd_serdes_cfg_t *serdes_cfg = &(switchd_ctx->asic[dev_id].serdes_cfg);
   int pci_dev_id = switchd_ctx->asic[dev_id].pci_dev_id;
   int rc;
@@ -1708,7 +1689,6 @@ static bf_status_t bf_switchd_init_device_profile(
     }
   }
 
-#endif
 #ifdef BFRT_ENABLED
   if (switchd_ctx->args.install_dir != NULL) {
     /* Set the path the the BF-RT Fixed JSON files based on the install
@@ -2964,7 +2944,6 @@ static int bf_switchd_check_for_interrupts_or_timeout(
   bf_dev_id_t dev_id = 0;
   switchd_state_t *dev_state;
   static uint32_t max_subdev_id_cnt = 0;
-  static struct timeval warned_at = {0, 0};
 
   if (max_subdev_id_cnt == 0) {
     max_subdev_id_cnt = bf_switchd_get_max_subdev_id_cnt();
@@ -3576,13 +3555,6 @@ static void bf_switchd_accton_diag_lib_init(bf_dev_id_t dev_id) {
   switchd_state_t *state = &(switchd_ctx->state[dev_id]);
   agent_init_fn_t agent_init_fn;
   int ret = 0;
-  int is_master;
-
-#if __sun
-  is_master = 1;
-#else
-  is_master = !kernel_pkt_proc;
-#endif
 
   if (switchd_ctx->args.skip_p4) {
     bf_sys_log_and_trace(BF_MOD_SWITCHD, BF_LOG_DBG, "Skip mav diag lib init");
@@ -4945,13 +4917,6 @@ static int bf_switchd_pltfm_device_type_get(void) {
 
 static int bf_switchd_device_type_get(void) {
   int ret = 0;
-  int is_master;
-
-#if __sun
-  is_master = 1;
-#else
-  is_master = !kernel_pkt_proc;
-#endif
 
   /* Check the PAL handler registration to get device type */
   ret = bf_switchd_pal_device_type_get();
@@ -5242,7 +5207,6 @@ static int bf_switchd_driver_init(bool kernel_pkt_proc) {
                           switchd_ctx->args.server_listen_local_only);
 #endif
 #endif
-#endif
 
   return 0;
 }
@@ -5347,7 +5311,6 @@ static int bf_switchd_find_dru_sim_fn(void *dru_sim_handle) {
   return 0;
 #endif  // STATIC_LINK_LIB
 }
-#endif // __sun
 
 /* Initialize DMA simulation service */
 static int bf_switchd_dru_sim_init(void) {
@@ -5542,7 +5505,6 @@ static int bf_switchd_sys_init(void) {
 #endif
 #endif
 #endif
-#endif
 
   return 0;
 }
@@ -5664,7 +5626,6 @@ static void setup_pci_err_handler() {
   pci_err_action.sa_flags = SA_SIGINFO;
   sigaction(SIGIO, &pci_err_action, NULL);
 }
-#endif // __sun
 
 #ifndef __sun
 static bf_status_t bf_switchd_sysfs_cpuif_name_get(char *file_node,
@@ -5686,7 +5647,6 @@ static bf_status_t bf_switchd_sysfs_cpuif_name_get(char *file_node,
         return BF_SUCCESS;
       }
     }
-#endif
   }
   return BF_OBJECT_NOT_FOUND;
 }
@@ -5907,7 +5867,6 @@ static void bf_switchd_set_dflt_skip_options() {
       default:
         break;
     }
-#endif
   }
 }
 
@@ -6050,7 +6009,6 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
           sts);
       return sts;
     }
-#endif /* __sun */
   }
 
   /* Initialize system services */
@@ -6075,7 +6033,6 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
     if (switchd_ctx) free(switchd_ctx);
     return ret;
   }
-#endif
 
   bf_switchd_set_dflt_skip_options();
 
@@ -6212,17 +6169,6 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
           switchd_ctx->asic[dev_id].subdev_pres_msk |= (1 << subdev_id);
         }
       }
-#else
-	if (switchd_ctx->args.kernel_pkt) {
-		int resetting = 0;
-		printf("activating tfpkt\n");
-		int dev_fd = (&(switchd_ctx->pcie_map[dev_id][0]))->dev_fd;
-		if (ioctl(dev_fd, BF_PKT_INIT, &resetting) != 0) {
-			printf("failed to enable tbus access: %s\n",
-			    strerror(errno));
-		}
-	}
-#endif
     }
   }
 
@@ -6300,7 +6246,6 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
       /* Setup pci error handler */
       setup_pci_err_handler();
     }
-#endif /* __sun */
   }
 
   /* sleep for 3 seconds to allow other slow i2c operations to be over if
@@ -6360,7 +6305,6 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
       break;
     }
   }
-#endif
 
   if (switchd_ctx->args.shell_before_dev_add) {
     /* Start the driver shell before devices are added. */
@@ -6399,17 +6343,6 @@ int bf_switchd_lib_init(bf_switchd_context_t *ctx) {
             bf_err_str(sts),
             dev_id);
       }
-#else
-	if (switchd_ctx->args.kernel_pkt) {
-		int resetting = 0;
-		printf("activating tfpkt\n");
-		int dev_fd = (&(switchd_ctx->pcie_map[dev_id][0]))->dev_fd;
-		if (ioctl(dev_fd, BF_PKT_INIT, &resetting) != 0) {
-			printf("failed to enable tbus access: %s\n",
-			    strerror(errno));
-		}
-	}
-#endif
     }
     /* Add device */
     sts = bf_switchd_device_add(dev_id, true);

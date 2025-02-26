@@ -14,19 +14,12 @@
 #include <bf_pltfm_ext_phy.h>
 #include <bf_bd_cfg/bf_bd_cfg_intf.h>
 #include <port_mgr/bf_port_if.h>
-#include <bf_pm/bf_pm_fsm_common.h>
 #include <port_mgr/bf_fsm_if.h>
 #include <bf_pm/bf_pm_fsm_common.h>
 #include <bf_pm/bf_pm_intf.h>
 #include <bf_pltfm.h>
 // Local header includes
 #include "bf_pm_priv.h"
-
-int bf_port_led_set(int chip_id,
-    bf_pltfm_port_info_t *port_info,
-    bf_led_condition_t led_cond) {
-	return (bf_pltfm_port_led_set(chip_id, port_info, led_cond));
-}
 
 // Until we integrate it with SDK
 bf_status_t bf_pm_encoding_mode_get(bf_port_speed_t speed,
@@ -650,35 +643,6 @@ bf_status_t bf_pm_pltfm_port_media_type_get(
   if (sts != BF_PLTFM_SUCCESS) {
     LOG_ERROR(
         "Unable to get the media type for dev : %d : front port : %d/%d : %s "
-        "(%d)",
-        dev_id,
-        port_info.conn_id,
-        port_info.chnl_id,
-        bf_pltfm_err_str(sts),
-        sts);
-    return sts;
-  }
-
-  return BF_SUCCESS;
-}
-
-bf_status_t bf_pm_pltfm_port_presence_get(
-    bf_pal_front_port_handle_t *port_hdl, bool *presence) {
-  bf_pltfm_status_t sts = BF_PLTFM_SUCCESS;
-  bf_pltfm_port_info_t port_info;
-  bf_dev_id_t dev_id = 0;
-
-  // Safety Checks
-  if (!port_hdl) return BF_INVALID_ARG;
-  if (!presence) return BF_INVALID_ARG;
-
-  port_info.conn_id = port_hdl->conn_id;
-  port_info.chnl_id = port_hdl->chnl_id;
-
-  sts = bf_pltfm_pm_presence_get(&port_info, presence);
-  if (sts != BF_PLTFM_SUCCESS) {
-    LOG_ERROR(
-        "Unable to get the presence bit for dev : %d : front port : %d/%d : %s "
         "(%d)",
         dev_id,
         port_info.conn_id,

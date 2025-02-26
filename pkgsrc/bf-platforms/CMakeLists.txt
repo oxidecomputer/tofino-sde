@@ -61,6 +61,7 @@ add_library(pltfm_driver_o OBJECT
   drivers/src/bf_bd_cfg/bf_bd_cfg_porting.c
   drivers/src/bf_qsfp/bf_qsfp_cli.c
   drivers/src/bf_qsfp/bf_qsfp_comm.c
+  drivers/src/bf_led/bf_led.c
   drivers/src/bf_port_mgmt/bf_pm_intf.c
   drivers/src/bf_port_mgmt/bf_pm_intf_new.c
   drivers/src/bf_port_mgmt/bf_pm_qsfp_mgmt.c

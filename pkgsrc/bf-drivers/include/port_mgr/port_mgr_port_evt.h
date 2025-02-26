@@ -32,7 +32,7 @@ typedef enum {
   PORT_MGR_PORT_EVT_DOWN,
   PORT_MGR_PORT_EVT_SPEED_SET,
   PORT_MGR_PORT_FSM_TRANSITION,
-  // TODO: tofino-sde#2 PORT_MGR_PORT_PRESENCE_UPDATE,
+  PORT_MGR_PORT_PRESENCE_UPDATE,
 } port_mgr_port_event_t;
 
 typedef void (*port_mgr_port_callback_t)(bf_dev_id_t chip,
