@@ -26,8 +26,8 @@ banner "packages"
 pwd
 wget https://oxide-tofino-build.s3.us-west-2.amazonaws.com/boost.tar.gz
 (cd / ; pfexec tar xfvz /work/oxidecomputer/tofino-sde/boost.tar.gz)
-pfexec pkg install cmake gcc-12 bdw-gc pyinstaller
-python -m pip install jsl
+pfexec pkg install cmake gcc12 bdw-gc
+python -m pip install jsl pyinstaller
 
 banner "build"
 ./oxide/build.sh
