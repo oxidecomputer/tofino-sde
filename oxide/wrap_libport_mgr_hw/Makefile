@@ -36,7 +36,8 @@ libport_mgr_hw.so: libport_mgr_hw.o
 	${CC} -G -o $@ -h $@ -fpic $^
 
 install: ${WRAPPED_LIBS}
-	${CP} ${WRAPPED_LIBS} ${LIB_DIR}
+	mkdir -p ${LIB_DIR}/illumos
+	${CP} ${WRAPPED_LIBS} ${LIB_DIR}/illumos
 
 clean:
 	${RM} -f object_files/.done \

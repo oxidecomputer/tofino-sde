@@ -25,10 +25,17 @@ port_mgr_tof2/port_mgr_tof2_port.c
 target_compile_options(bfport_mgr_o PRIVATE -Wno-unused-parameter -Wno-maybe-uninitialized -Wno-implicit-fallthrough)
 add_library(bfport_mgr SHARED EXCLUDE_FROM_ALL $<TARGET_OBJECTS:bfport_mgr_o>)
 target_link_libraries(bfport_mgr lld)
-file(COPY
-  ${CMAKE_CURRENT_SOURCE_DIR}/port_mgr_lib/libport_mgr_hw.a
-  ${CMAKE_CURRENT_SOURCE_DIR}/port_mgr_lib/libport_mgr_hw.so
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+if("${CMAKE_SYSTEM_NAME}" EQUAL "SunOS")
+  file(COPY
+    ${CMAKE_CURRENT_SOURCE_DIR}/port_mgr_lib/illumos/libport_mgr_hw.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/port_mgr_lib/illumos/libport_mgr_hw.so
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+else()
+  file(COPY
+    ${CMAKE_CURRENT_SOURCE_DIR}/port_mgr_lib/libport_mgr_hw.a
+    ${CMAKE_CURRENT_SOURCE_DIR}/port_mgr_lib/libport_mgr_hw.so
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+endif()
 
 # Building port manager doxygen
 find_package(Doxygen)

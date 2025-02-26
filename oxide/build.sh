@@ -30,16 +30,7 @@ EOF
 
 function prework() {
     if [ $ILLUMOS -eq 1 ]; then
-	X=${SDE}/pkgsrc/bf-drivers/src/port_mgr/port_mgr_lib
-	if [ -f $X/libport_mgr_hw.a.orig ]; then
-		mv $X/libport_mgr_hw.a.orig $X/libport_mgr_hw.a
-	fi
-	if [ -f $X/libport_mgr_hw.so.orig ]; then
-		mv $X/libport_mgr_hw.so.orig $X/libport_mgr_hw.so
-	fi
         echo Wrapping wrap_libport_mgr_hw
-	cp $X/libport_mgr_hw.so $X/libport_mgr_hw.so.orig
-	cp $X/libport_mgr_hw.a $X/libport_mgr_hw.a.orig
         (cd ${SDE}/oxide/wrap_libport_mgr_hw ; gmake clean; gmake install)
     fi
 
