@@ -118,11 +118,6 @@ function usage() {
     printf "    -j \tTell (g)make how many jobs to spawn\n"
 }
 
-function install_packages() {
-    pfexec pkg install bdw-gc pyinstaller # protobuf
-    pip3 install jsl
-}
-
 export SDE=`git rev-parse --show-toplevel`
 echo Building SDE at git root: ${SDE}
 mkdir ${SDE}/build || echo ${SDE}/build already exists
