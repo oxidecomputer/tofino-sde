@@ -16,7 +16,7 @@ ${ORIG_LIB}:
 	${CP} ${LIB_DIR}/libport_mgr_hw.a ${ORIG_LIB}
 
 object_files:
-	mkdir object_files
+	mkdir -p object_files
 
 object_files/.done: object_files ${ORIG_LIB}
 	${AR} -t ${ORIG_LIB} > object_files/object_names
@@ -45,4 +45,3 @@ clean:
 		libport_mgr_hw.o \
 		${WRAPPED_LIBS} \
 		${ORIG_LIB}
-	${RMDIR} object_files
