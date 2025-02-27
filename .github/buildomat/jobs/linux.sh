@@ -3,7 +3,6 @@
 #: name = "linux"
 #: variety = "basic"
 #: target = "ubuntu-22.04"
-#: name = "build"
 #: output_rules = [
 #:   "/out/*",
 #: ]
