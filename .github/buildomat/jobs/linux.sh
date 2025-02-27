@@ -22,12 +22,13 @@ set -o pipefail
 set -o xtrace
 
 banner "packages"
+sudo apt install python3-pip
+python3 -m pip install jsl pyinstaller
 
 # This is very slow and adds a lot of stuff we don't really need. Unfortunately,
 # the stock ubuntu variants of the different packages make the build unhappy.
 # At some point it might be worth spending a little time getting this tool to
 # install just the specific things we need.  (just abseil and boost, I think).
-python3 -m pip install jsl pyinstaller
 ./p4studio/p4studio dependencies install
 
 banner "build"
