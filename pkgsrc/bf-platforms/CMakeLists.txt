@@ -40,7 +40,7 @@ add_library(sidecar_driver SHARED $<TARGET_OBJECTS:sidecar_driver_o>)
 # be available to the runtime linker, so that linking of this library can
 # succeed. The symbols defined in the mapfile are actually implemented in the
 # Dendrite repository.
-if("${CMAKE_SYSTEM_NAME}" EQUAL "SunOS")
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "SunOS")
   set(
       SIDECAR_MAPFILE
       "${CMAKE_CURRENT_SOURCE_DIR}/platforms/sidecar/src/platform_mgr/mapfile"

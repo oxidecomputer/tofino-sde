@@ -41,13 +41,8 @@ add_library(driver SHARED
 set_target_properties(driver PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(driver PUBLIC bfutils dl pthread m target_sys target_utils)
 
-if("${CMAKE_SYSTEM_NAME}" EQUAL "SunOS")
-  find_program(MY_PROGRAM libport_mgr_hw.a
-             HINTS ${CMAKE_INSTALL_PREFIX}/lib/illumos)
-else()
-  find_program(MY_PROGRAM libport_mgr_hw.a
-             HINTS ${CMAKE_INSTALL_PREFIX}/lib)
-endif()
+find_program(MY_PROGRAM libport_mgr_hw.a
+           HINTS ${CMAKE_INSTALL_PREFIX}/lib)
 if(MY_PROGRAM)
   message(STATUS "Found my_program: ${MY_PROGRAM}")
 else()
