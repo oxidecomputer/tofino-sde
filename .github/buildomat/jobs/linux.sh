@@ -22,7 +22,7 @@ set -o pipefail
 set -o xtrace
 
 banner "packages"
-sudo apt install python3-pip
+sudo apt install -y python3-pip
 python3 -m pip install jsl pyinstaller
 
 # This is very slow and adds a lot of stuff we don't really need. Unfortunately,
