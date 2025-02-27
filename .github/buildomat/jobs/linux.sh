@@ -21,6 +21,10 @@ set -o errexit
 set -o pipefail
 set -o xtrace
 
+function digest {
+    shasum -a 256 "$1" | awk -F ' ' '{print $1}'
+}
+
 banner "packages"
 sudo apt install -y python3-pip
 python3 -m pip install jsl pyinstaller
@@ -40,4 +44,4 @@ banner "package"
 pfexec mkdir -p /out
 pfexec chown "$UID" /out
 cp tofino_sde.deb /out/tofino_sde.deb
-digest -a sha256 /out/tofino_sde.deb > /out/tofino_sde.deb.sha256.txt
+digest /out/tofino_sde.deb > /out/tofino_sde.deb.sha256.txt
