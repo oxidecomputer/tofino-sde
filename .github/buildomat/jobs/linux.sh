@@ -27,6 +27,7 @@ banner "packages"
 # the stock ubuntu variants of the different packages make the build unhappy.
 # At some point it might be worth spending a little time getting this tool to
 # install just the specific things we need.  (just abseil and boost, I think).
+python3 -m pip install jsl pyinstaller
 ./p4studio/p4studio dependencies install
 
 banner "build"
