@@ -9,6 +9,13 @@ else
     export ILLUMOS=0
 fi
 
+function get_firmware() {
+    FW_DIR=${SDE}/install/share/tofino_sds_fw/credo
+    mkdir -p $FW_DIR
+    wget -P /tmp https://oxide-tofino-build.s3.us-west-2.amazonaws.com/serdes_fw.tar.gz
+    (cd $FW_DIR ; tar xvfz /tmp/serdes_fw.tar.gz)
+}
+
 function patch_abseil() {
     (
         cd ${SDE}/install/include/absl/container/internal/
@@ -32,6 +39,8 @@ function prework() {
     if [ $ILLUMOS -eq 1 ]; then
         echo Wrapping wrap_libport_mgr_hw
         (cd ${SDE}/oxide/wrap_libport_mgr_hw ; gmake clean; gmake install)
+    else
+        echo patch_abseil
     fi
 
     RAPIDJSON_DIR=${SDE}/oxide/rapidjson
@@ -97,7 +106,9 @@ function configure_build {
 function build {
     cd $SDE/build
     gmake -j ${JOBS} install
-    if [ $ILLUMOS -eq 0 ]; then
+    if [ $ILLUMOS -eq 1 ]; then
+	get_firmware
+    else
         (cd ${SDE}/oxide/remote_model ; make install)
     fi
 }
@@ -128,11 +139,8 @@ done
 
 if [ $ILLUMOS -eq 1 ]; then
     alias make=gmake
-else
-    patch_abseil
 fi
 
 prework
 configure_build
 build
-

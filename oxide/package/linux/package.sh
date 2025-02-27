@@ -47,4 +47,4 @@ cp $LINUX_ROOT/debian_sde/compat $BUILD_DIR/DEBIAN/
 cp $LINUX_ROOT/debian_sde/copyright $BUILD_DIR/DEBIAN/
 sed "s/_version_/$FULLVER/" $LINUX_ROOT/debian_sde/control > $BUILD_DIR/DEBIAN/control
 
-dpkg --build $BUILD_DIR tofino-sde-$FULLVER.deb
+dpkg --build $BUILD_DIR tofino_sde.deb

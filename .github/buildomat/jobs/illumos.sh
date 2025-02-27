@@ -17,8 +17,6 @@
 #: name = "tofino_sde.p5p.sha256.txt"
 #: from_output = "/out/tofino_sde.p5p.sha256.txt"
 
-exit 0
-
 set -o errexit
 set -o pipefail
 set -o xtrace

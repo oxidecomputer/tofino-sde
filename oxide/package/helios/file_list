@@ -3,6 +3,12 @@ include/bf_pltfm_types/bf_pltfm_types.h
 include/bf_pltfm/bf_pltfm_bd_cfg.h
 include/bf_qsfp/bf_qsfp.h
 include/bf_qsfp/sff.h
+lib/libpltfm_mgr.so
 share/platforms/board-maps/oxide/sidecar_rev_a.csv
 share/platforms/board-maps/oxide/sidecar_rev_b.csv
-lib/libpltfm_mgr.so
+share/tofino_sds_fw/credo/firmware/bluejay.fw.1.2.25.bin
+share/tofino_sds_fw/credo/firmware/bluejay.fw.1.2.26.bin
+share/tofino_sds_fw/credo/firmware/bluejay_nrz.fw.1.2.25.bin
+share/tofino_sds_fw/credo/firmware/bluejay_nrz.fw.1.2.26.bin
+share/tofino_sds_fw/credo/firmware/tof2_A0_grp_0_7_serdes.bin
+share/tofino_sds_fw/credo/firmware/tof2_A0_grp_8_serdes.bin
