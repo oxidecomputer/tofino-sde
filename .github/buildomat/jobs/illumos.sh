@@ -8,12 +8,12 @@
 #: ]
 #:
 #: [[publish]]
-#: series = "image"
+#: series = "illumos"
 #: name = "tofino_sde.p5p"
 #: from_output = "/out/tofino_sde.p5p"
 #
 #: [[publish]]
-#: series = "image"
+#: series = "illumos"
 #: name = "tofino_sde.p5p.sha256.txt"
 #: from_output = "/out/tofino_sde.p5p.sha256.txt"
 

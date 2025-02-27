@@ -8,12 +8,12 @@
 #: ]
 #:
 #: [[publish]]
-#: series = "image"
+#: series = "linux"
 #: name = "tofino_sde.deb"
 #: from_output = "/out/tofino_sde.deb"
 #
 #: [[publish]]
-#: series = "image"
+#: series = "linux"
 #: name = "tofino_sde.deb.sha256.txt"
 #: from_output = "/out/tofino_sde.deb.sha256.txt"
 
