@@ -40,7 +40,7 @@ function prework() {
         echo Wrapping wrap_libport_mgr_hw
         (cd ${SDE}/oxide/wrap_libport_mgr_hw ; gmake clean; gmake install)
     else
-        echo patch_abseil
+        patch_abseil
     fi
 
     RAPIDJSON_DIR=${SDE}/oxide/rapidjson
