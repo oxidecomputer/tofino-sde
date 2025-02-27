@@ -32,8 +32,8 @@ echo Building SDE in $BUILD_DIR
 trap cleanup EXIT
 
 mkdir -p $BUILD_DIR/opt/oxide/tofino_sde
-for d in `cat $TOOL_ROOT/common_dir_list $LINUX_ROOT/dir_list`; do
-	mkdir $BUILD_DIR/opt/oxide/tofino_sde/$d
+for d in `cat $TOOL_ROOT/common_dir_list`; do
+	mkdir -p $BUILD_DIR/opt/oxide/tofino_sde/$d
 done
 for f in `cat $TOOL_ROOT/common_file_list $LINUX_ROOT/file_list`; do
 	cp $SDE/install/$f $BUILD_DIR/opt/oxide/tofino_sde/$f
@@ -48,7 +48,3 @@ cp $LINUX_ROOT/debian_sde/copyright $BUILD_DIR/DEBIAN/
 sed "s/_version_/$FULLVER/" $LINUX_ROOT/debian_sde/control > $BUILD_DIR/DEBIAN/control
 
 dpkg --build $BUILD_DIR tofino-sde-$FULLVER.deb
-
-if [ $? == 0 ]; then
-	rm -rf $BUILD_DIR
-fi

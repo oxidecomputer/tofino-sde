@@ -378,7 +378,7 @@ bf_status_t bf_knet_cpuif_list_get(bf_knet_cpuif_list_t *const cpuif_list,
   *cpuif_count = ((bf_knet_msg_cpuif_list_get_t *)(cpuifreq.ifr_data))->size;
   return bf_knet_status_to_status(
       ((bf_knet_msg_t *)(cpuifreq.ifr_data))->hdr.status);
-#endif __sun
+#endif /* __sun */
 }
 
 bf_status_t bf_knet_cpuif_ndev_delete(const bf_knet_cpuif_t knet_cpuif_id) {

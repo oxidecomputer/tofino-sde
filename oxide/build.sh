@@ -46,7 +46,7 @@ function configure_build {
         BSP=OFF
         LINKER_FLAGS=""
         BOOST_DIR=${SDE}/install/include/boost/include
-        BOOST_STATIC=ON
+        BOOST_STATIC=OFF
         ABSL_DIR="/usr/lib/x86_64-linux-gnu/cmake/absl"
         CXX_FLAGS="-I${SDE}/oxide/rapidjson/include"
         C_FLAGS=""
@@ -128,6 +128,8 @@ done
 
 if [ $ILLUMOS -eq 1 ]; then
     alias make=gmake
+else
+    patch_abseil
 fi
 
 prework
