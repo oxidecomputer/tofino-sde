@@ -1098,6 +1098,14 @@ static void bf_switchd_ports_add_to_model(bf_dev_id_t dev_id) {
   /* Figure out how many pipelines present on this device */
   lld_sku_get_num_active_pipes(dev_id, &num_pipes);
 
+  if (switchd_ctx->asic[dev_id].chip_family == BF_DEV_FAMILY_TOFINO3) {
+    max_port = lld_get_max_fp_port(dev_id);
+    port_step = 2;
+  } else {
+    max_port = BF_PIPE_PORT_COUNT - 1;
+    port_step = 1;
+  }
+
   /* Add a all of device's ports across all pipelines present */
   for (uint32_t pipe = 0; pipe < num_pipes; pipe++) {
     for (int port = 0; port <= max_port; port += port_step) {
@@ -1593,7 +1601,8 @@ static bf_status_t bf_switchd_init_device_profile(
 
   /* First populate the fields related to serdes firmware, this is only required
    * for physical devicse. */
-  if (!switchd_ctx->asic[dev_id].is_virtual) {
+  if (!switchd_ctx->asic[dev_id].is_virtual &&
+    !switchd_ctx->asic[dev_id].is_sw_model) {
     /* Set the Tofino-1 serdes firmware paths for the device. */
     if (switchd_ctx->asic[dev_id].chip_family == BF_DEV_FAMILY_TOFINO) {
       /* If the conf file did not specify a path to the serdes firmware files
