@@ -19,7 +19,8 @@ function get_firmware() {
 function patch_abseil() {
     (
         cd ${SDE}/install/include/absl/container/internal/
-	cat << EOF | patch -p1 layout.h
+	# if layout.h hasn't already been patched, do it now.
+        grep -q "std::free" layout.h || cat << EOF | patch -p1 layout.h
 --- layout.h.orig	2025-02-20 21:52:10.936645134 +0000
 +++ layout.h	2025-02-20 21:55:01.170413186 +0000
 @@ -301,7 +301,7 @@
@@ -54,11 +55,12 @@ function configure_build {
         # We only want to build the sidecar code on helios
         BSP=OFF
         LINKER_FLAGS=""
+	BOOST_ROOT=-DBOOST_ROOT=${SDE}/install
         BOOST_DIR=${SDE}/install/include/boost/include
-        BOOST_STATIC=OFF
-        ABSL_DIR="/usr/lib/x86_64-linux-gnu/cmake/absl"
+        BOOST_STATIC=ON
         CXX_FLAGS="-I${SDE}/oxide/rapidjson/include"
         C_FLAGS=""
+	export LD_LIBRARY_PATH=${SDE}/install/lib
     else
         BSP=ON
         LINKER_FLAGS="-lnsl -lsocket"
@@ -72,7 +74,6 @@ function configure_build {
     fi
 
     cd ${SDE}/build
-    CMAKE_PREFIX_PATH=/usr/lib/x86_64-linux-gnu/cmake/absl \
     cmake $SDE \
         -DASIC=ON  \
         -DTOFINO=OFF \
@@ -93,6 +94,7 @@ function configure_build {
         -DRAPIDJSON_DIR=$RAPIDJSON_DIR/include \
         -DP4C_USE_PREINSTALLED_ABSEIL=ON \
         -DP4C_USE_PREINSTALLED_PROTOBUF=OFF \
+	${BOOST_ROOT} \
         -DBoost_INCLUDE_DIRS=${BOOST_DIR} \
 	-DBoost_USE_STATIC_RUNTIME=$BOOST_STATIC \
         -DCMAKE_BUILD_TYPE='Release' \

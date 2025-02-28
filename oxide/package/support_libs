@@ -2,22 +2,51 @@
 # installed along with it.  Ideally these would be provided as part of
 # a standalone Abseil package, but the Ubuntu package doesn't include the
 # needed CMake support.
+libabsl_base.so.2308.0.0
+libabsl_city.so.2308.0.0
+libabsl_cord.so.2308.0.0
+libabsl_cord_internal.so.2308.0.0
+libabsl_cordz_functions.so.2308.0.0
+libabsl_cordz_handle.so.2308.0.0
+libabsl_cordz_info.so.2308.0.0
+libabsl_crc_cord_state.so.2308.0.0
+libabsl_crc_internal.so.2308.0.0
+libabsl_crc32c.so.2308.0.0
+libabsl_debugging_internal.so.2308.0.0
+libabsl_demangle_internal.so.2308.0.0
+libabsl_examine_stack.so.2308.0.0
+libabsl_exponential_biased.so.2308.0.0
+libabsl_graphcycles_internal.so.2308.0.0
+libabsl_hash.so.2308.0.0
+libabsl_int128.so.2308.0.0
+libabsl_kernel_timeout_internal.so.2308.0.0
+libabsl_log_globals.so.2308.0.0
 libabsl_log_internal_check_op.so.2308.0.0
-libabsl_statusor.so.2308.0.0
-libabsl_status.so.2308.0.0
 libabsl_log_internal_conditions.so.2308.0.0
+libabsl_log_internal_format.so.2308.0.0
+libabsl_log_internal_globals.so.2308.0.0
+libabsl_log_internal_log_sink_set.so.2308.0.0
 libabsl_log_internal_message.so.2308.0.0
 libabsl_log_internal_nullguard.so.2308.0.0
-libabsl_cord.so.2308.0.0
-libabsl_cordz_info.so.2308.0.0
-libabsl_str_format_internal.so.2308.0.0
+libabsl_log_internal_proto.so.2308.0.0
+libabsl_log_sink.so.2308.0.0
+libabsl_low_level_hash.so.2308.0.0
+libabsl_malloc_internal.so.2308.0.0
 libabsl_raw_hash_set.so.2308.0.0
-libabsl_hash.so.2308.0.0
-libabsl_synchronization.so.2308.0.0
-libabsl_stacktrace.so.2308.0.0
-libabsl_symbolize.so.2308.0.0
-libabsl_time.so.2308.0.0
-libabsl_strings.so.2308.0.0
-libabsl_throw_delegate.so.2308.0.0
-libabsl_spinlock_wait.so.2308.0.0
 libabsl_raw_logging_internal.so.2308.0.0
+libabsl_spinlock_wait.so.2308.0.0
+libabsl_stacktrace.so.2308.0.0
+libabsl_status.so.2308.0.0
+libabsl_statusor.so.2308.0.0
+libabsl_str_format_internal.so.2308.0.0
+libabsl_strerror.so.2308.0.0
+libabsl_strings.so.2308.0.0
+libabsl_strings_internal.so.2308.0.0
+libabsl_symbolize.so.2308.0.0
+libabsl_synchronization.so.2308.0.0
+libabsl_throw_delegate.so.2308.0.0
+libabsl_time.so.2308.0.0
+libabsl_time_zone.so.2308.0.0
+# We include this library because ubuntu ships with 1.74.0.  We should be
+# building with that version instead of 1.67.0.
+libboost_iostreams.so.1.67.0
