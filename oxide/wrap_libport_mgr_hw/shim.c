@@ -1,10 +1,17 @@
-void *stdout;
+/*
+ * Copyright 2025 Oxide Computer Company
+ */
+
+/*
+ * This file acts as a shim layer between the linux-built libport_mgr_hw.so
+ * and the illumos/helios libc.  It implements the function entry points the
+ * library consumes in glibc but not present in the illumos/helios libc.
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <assert.h>
-
 
 void
 __assert_fail(const char * assertion, const char * file, unsigned int line, const char * function)
@@ -70,3 +77,19 @@ const unsigned short **__ctype_b_loc(void)
 {
 	return (void *)&ptable;
 }
+
+/*
+ * In illumos's stdio.h, stdout is a #define to &__iob[1].  Because the
+ * library being wrapped wasn't built with that header, the resulting code
+ * expects stdout to be a FILE*.  The following dance creates a FILE* symbol
+ * visible to the library at link time, and initializes it correctly at runtime.
+ */
+static FILE *_stdout = stdout;
+#undef stdout
+FILE *stdout;
+void init_stdout()
+{
+	stdout = _stdout;
+}
+
+#pragma init (init_stdout)

@@ -19,7 +19,10 @@ echo Using SDE at git root: ${SDE}
 
 export SDE_INSTALL=${SDE}/install
 export TOOL_ROOT=${SDE}/oxide/package
-find_sde_version
+
+if [ x"$SDE_VERSION" == x ]; then
+	find_sde_version
+fi
 
 BUILD_TARBALL=0
 
