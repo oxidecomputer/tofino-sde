@@ -5,7 +5,10 @@
 #include <strings.h>
 #include <errno.h>
 #include <fcntl.h>
+<<<<<<< HEAD
 #include <pthread.h>
+=======
+>>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
 #include <sys/mman.h>
 #include <sys/mem.h>
 
@@ -45,6 +48,11 @@ typedef struct dma_buf_s {
 
 #define MAX_NAME_LEN 64
 
+<<<<<<< HEAD
+=======
+// XXX: does this need to be locked, or does something in the upper layer
+// handle that?
+>>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
 typedef struct dma_pool_s {
 	char		dp_name[MAX_NAME_LEN];
 
@@ -60,7 +68,10 @@ typedef struct dma_pool_s {
 	uint32_t	dp_pfn_shift;		// for pa->pfn calculation
 	uint32_t	dp_page_size;		// size of the pages in the pool
 
+<<<<<<< HEAD
 	pthread_mutex_t	dp_mutex;		// protects the freelist
+=======
+>>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
 	dma_buf_t *dp_bufs;			// all buffer structures
 	dma_buf_t *dp_head;			// head of the freelist
 	dma_buf_t *dp_tail;			// tail of the freelist
@@ -172,14 +183,20 @@ dma_buf_alloc(dma_pool_t *pool)
 {
 	dma_buf_t *buf;
 
+<<<<<<< HEAD
 	pthread_mutex_lock(&pool->dp_mutex);
+=======
+>>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
 	if ((buf = pool->dp_head) != NULL) {
 		pool->dp_head = buf->db_next;
 		if (pool->dp_head == NULL) {
 			pool->dp_tail = NULL;
 		}
 	}
+<<<<<<< HEAD
 	pthread_mutex_unlock(&pool->dp_mutex);
+=======
+>>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
 
 	return buf;
 }
@@ -192,7 +209,10 @@ dma_buf_free(dma_pool_t *pool, dma_buf_t *buf)
 {
 	ASSERT(in_pool(pool, buf->db_addr));
 
+<<<<<<< HEAD
 	pthread_mutex_lock(&pool->dp_mutex);
+=======
+>>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
 	buf->db_next = NULL;
 	if (pool->dp_tail == NULL) {
 		pool->dp_head = buf;
@@ -200,7 +220,10 @@ dma_buf_free(dma_pool_t *pool, dma_buf_t *buf)
 		pool->dp_tail->db_next = buf;
 	};
 	pool->dp_tail = buf;
+<<<<<<< HEAD
 	pthread_mutex_unlock(&pool->dp_mutex);
+=======
+>>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
 }
 
 static uint64_t
@@ -453,7 +476,10 @@ bf_sys_dma_pool_create(char *pool_name,
 	*hdl = (void *)pool_hdl;
 
 	bzero(pool_hdl, sizeof(*pool_hdl));
+<<<<<<< HEAD
 	pthread_mutex_init(&pool_hdl->dp_mutex, NULL);
+=======
+>>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
 	strlcpy(pool_hdl->dp_name, pool_name, MAX_NAME_LEN);
 	pool_hdl->dp_buf_size = size;
 	pool_hdl->dp_buf_cnt = cnt;
@@ -533,7 +559,10 @@ bf_sys_dma_pool_destroy(bf_sys_dma_pool_handle_t hdl)
 			free(pool->dp_bufs);
 		if (pool->dp_start != NULL)
 			munmap(pool->dp_start, pool->dp_pool_size);
+<<<<<<< HEAD
 		pthread_mutex_destroy(&pool->dp_mutex);
+=======
+>>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
 		free(pool);
 	}
 }
@@ -553,6 +582,11 @@ _bf_sys_dma_alloc(bf_sys_dma_pool_handle_t hdl, size_t size, void **va,
 	}
 
 	if ((buf = dma_buf_alloc(pool)) == NULL) {
+<<<<<<< HEAD
+=======
+		fprintf(stderr, "%s:%d pool %s is empty\n", file, line,
+				 pool->dp_name);
+>>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
 		return -1;
 	}
 
