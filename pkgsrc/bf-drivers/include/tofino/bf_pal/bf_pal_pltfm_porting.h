@@ -400,6 +400,21 @@ typedef bf_status_t (*bf_pal_pltfm_ha_verify_port_state)(bf_dev_id_t dev_id);
 typedef int (*bf_pal_pltfm_check_port_non_func)(
     bf_dev_id_t dev_id, bf_pal_front_port_handle_t *port_hdl);
 
+/**
+ * @brief Given a connector ID, get the corresponding presence bit for that
+ * connector
+ *
+ * [MUST BE DEFINED BY PLATFORMS MODULE]
+ *
+ * @param port_hdl Front panel port handle
+ * @param presence Has the connector detected media presence?
+ *
+ * @return Status of the API call
+ */
+typedef bf_status_t (*bf_pal_pltfm_port_presence_get)(
+    bf_pal_front_port_handle_t *port_hdl,
+    bool *presence);
+
 // Defined data structures
 
 /**
@@ -430,6 +445,7 @@ typedef struct bf_pal_pltfm_reg_interface_t {
   bf_pal_pltfm_ha_mode_clear pltfm_ha_mode_clear;
   bf_pal_pltfm_ha_link_state_notify pltfm_ha_link_state_notify;
   bf_pal_pltfm_mac_to_multi_serdes_map_get pltfm_mac_to_multi_serdes_map_get;
+  bf_pal_pltfm_port_presence_get pltfm_port_presence_get;
   bf_pal_pltfm_ha_verify_port_state pltfm_ha_wait_port_cfg_done;
   bf_pal_pltfm_check_port_non_func pltfm_is_port_non_func;
 } bf_pal_pltfm_reg_interface_t;

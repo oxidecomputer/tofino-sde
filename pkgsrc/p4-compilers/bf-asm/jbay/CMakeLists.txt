@@ -61,5 +61,5 @@ set (BFAS_JBAY_HEADERS
   PARENT_SCOPE
   )
 
-include_directories (${BFASM_BINARY_DIR}/gen/jbay)
+include_directories (${BFASM_BINARY_DIR}/gen/jbay ${Boost_INCLUDE_DIRS})
 add_library (regs_jbay ${GEN_JBAY_SRCS} ${GEN_JBAY_HDRS})

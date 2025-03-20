@@ -68,5 +68,6 @@ set (BFAS_TOFINO_HEADERS
   PARENT_SCOPE
   )
 
-include_directories (${BFASM_BINARY_DIR}/gen/tofino)
+include_directories (${BFASM_BINARY_DIR}/gen/tofino ${Boost_INCLUDE_DIRS})
+
 add_library (regs_tofino ${GEN_TOFINO_SRCS} ${GEN_TOFINO_HDRS})

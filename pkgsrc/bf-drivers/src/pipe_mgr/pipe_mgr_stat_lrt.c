@@ -30,6 +30,9 @@
 /* Global header includes */
 #include <stdbool.h>
 #include <sys/types.h>
+#ifdef __sun
+#include <endian.h>
+#endif
 
 /* Module header includes */
 #include "bf_types/bf_types.h"

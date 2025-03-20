@@ -28,6 +28,7 @@
 #include <lld/lld_err.h>
 #include <lld/lld_sku.h>
 #include <port_mgr/bf_port_if.h>
+#include <bf_pm/bf_pm_fsm_common.h>
 #include <bf_pm/bf_pm_intf.h>
 #include <target-sys/bf_sal/bf_sys_intf.h>
 #include <dvm/bf_drv_intf.h>

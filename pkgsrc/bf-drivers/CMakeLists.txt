@@ -5,10 +5,6 @@ include(PythonDependencies)
 
 option(KERNEL-MODULES "Build kernel modules" OFF)
 
-if(ASIC)
-  set(KERNEL-MODULES ON CACHE BOOL "Build kernel modules while using ASIC" FORCE)
-endif()
-
 option(STANDALONE "Build outside of pkgsrc" OFF)
 
 if (STANDALONE)

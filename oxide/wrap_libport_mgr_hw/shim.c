@@ -1,0 +1,95 @@
+/*
+ * Copyright 2025 Oxide Computer Company
+ */
+
+/*
+ * This file acts as a shim layer between the linux-built libport_mgr_hw.so
+ * and the illumos/helios libc.  It implements the function entry points the
+ * library consumes in glibc but not present in the illumos/helios libc.
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <assert.h>
+
+void
+__assert_fail(const char * assertion, const char * file, unsigned int line, const char * function)
+{
+	__assert_c99(assertion, file, line, function);
+}
+
+int
+__isoc99_sscanf(const char *s, const char *fmt, ...)
+{
+	int ret;
+	va_list ap;
+   
+	va_start(ap, fmt);
+	ret = vscanf(fmt, ap);
+	va_end(ap);
+
+	return (ret);
+}
+
+/*
+ * The following code comes from the musl libc implementation, which is MIT
+ * licensed.
+ */
+#include <endian.h>
+
+#if __BYTE_ORDER == __BIG_ENDIAN
+#define X(x) x
+#else
+#define X(x) (((x)/256 | (x)*256) % 65536)
+#endif
+
+static const unsigned short table[] = {
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+X(0x200),X(0x200),X(0x200),X(0x200),X(0x200),X(0x200),X(0x200),X(0x200),
+X(0x200),X(0x320),X(0x220),X(0x220),X(0x220),X(0x220),X(0x200),X(0x200),
+X(0x200),X(0x200),X(0x200),X(0x200),X(0x200),X(0x200),X(0x200),X(0x200),
+X(0x200),X(0x200),X(0x200),X(0x200),X(0x200),X(0x200),X(0x200),X(0x200),
+X(0x160),X(0x4c0),X(0x4c0),X(0x4c0),X(0x4c0),X(0x4c0),X(0x4c0),X(0x4c0),
+X(0x4c0),X(0x4c0),X(0x4c0),X(0x4c0),X(0x4c0),X(0x4c0),X(0x4c0),X(0x4c0),
+X(0x8d8),X(0x8d8),X(0x8d8),X(0x8d8),X(0x8d8),X(0x8d8),X(0x8d8),X(0x8d8),
+X(0x8d8),X(0x8d8),X(0x4c0),X(0x4c0),X(0x4c0),X(0x4c0),X(0x4c0),X(0x4c0),
+X(0x4c0),X(0x8d5),X(0x8d5),X(0x8d5),X(0x8d5),X(0x8d5),X(0x8d5),X(0x8c5),
+X(0x8c5),X(0x8c5),X(0x8c5),X(0x8c5),X(0x8c5),X(0x8c5),X(0x8c5),X(0x8c5),
+X(0x8c5),X(0x8c5),X(0x8c5),X(0x8c5),X(0x8c5),X(0x8c5),X(0x8c5),X(0x8c5),
+X(0x8c5),X(0x8c5),X(0x8c5),X(0x4c0),X(0x4c0),X(0x4c0),X(0x4c0),X(0x4c0),
+X(0x4c0),X(0x8d6),X(0x8d6),X(0x8d6),X(0x8d6),X(0x8d6),X(0x8d6),X(0x8c6),
+X(0x8c6),X(0x8c6),X(0x8c6),X(0x8c6),X(0x8c6),X(0x8c6),X(0x8c6),X(0x8c6),
+X(0x8c6),X(0x8c6),X(0x8c6),X(0x8c6),X(0x8c6),X(0x8c6),X(0x8c6),X(0x8c6),
+X(0x8c6),X(0x8c6),X(0x8c6),X(0x4c0),X(0x4c0),X(0x4c0),X(0x4c0),X(0x200),
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+};
+
+static const unsigned short *const ptable = table+128;
+
+const unsigned short **__ctype_b_loc(void)
+{
+	return (void *)&ptable;
+}
+
+/*
+ * In illumos's stdio.h, stdout is a #define to &__iob[1].  Because the
+ * library being wrapped wasn't built with that header, the resulting code
+ * expects stdout to be a FILE*.  The following dance creates a FILE* symbol
+ * visible to the library at link time, and initializes it correctly at runtime.
+ */
+static FILE *_stdout = stdout;
+#undef stdout
+FILE *stdout;
+void init_stdout()
+{
+	stdout = _stdout;
+}
+
+#pragma init (init_stdout)

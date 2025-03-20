@@ -26,7 +26,9 @@
 #include <dvm/bf_drv_intf.h>
 #include <port_mgr/bf_port_if.h>
 #include <port_mgr/bf_tof2_serdes_if.h>
+#include <bf_pm/bf_pm_fsm_common.h>
 #include <bf_pm/bf_pm_intf.h>
+#include <bf_pm/bf_pm_fsm_common.h>
 #include "../bf_pm_fsm_if.h"
 #include "../../pm_log.h"
 

@@ -71,6 +71,8 @@
 #include "pipe_mgr_interrupt.h"
 #include "pipe_mgr_ctx_json.h"
 
+bf_sys_timer_t port_stuck_detect_timers[PIPE_MGR_NUM_DEVICES];
+
 /* Pointer to global pipe_mgr context */
 extern pipe_mgr_ctx_t *pipe_mgr_ctx;
 extern pipe_mgr_mutex_t g_pvs_mutex[PIPE_MGR_NUM_DEVICES];

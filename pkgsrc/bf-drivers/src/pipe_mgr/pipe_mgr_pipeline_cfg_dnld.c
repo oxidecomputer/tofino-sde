@@ -27,6 +27,9 @@
 #include <unistd.h>
 #include <sched.h>
 #include <sys/time.h>
+#ifdef __sun
+#include <endian.h>
+#endif
 
 #include "pipe_mgr_int.h"
 #include "pipe_mgr_phy_mem_map.h"

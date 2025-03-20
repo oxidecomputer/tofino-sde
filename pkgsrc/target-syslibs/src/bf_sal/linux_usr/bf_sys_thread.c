@@ -64,4 +64,7 @@ int bf_sys_thread_set_name(bf_sys_thread_t thr, const char *name) {
   return (pthread_setname_np(th, name));
 }
 
-int bf_sys_thread_yield(void) { return sched_yield(); }
+int bf_sys_thread_yield(void) {
+	sched_yield();
+	return 0;
+}

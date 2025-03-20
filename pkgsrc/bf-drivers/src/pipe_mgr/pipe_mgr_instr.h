@@ -27,6 +27,9 @@
 #ifndef PIPE_MGR_INSTR_H
 #define PIPE_MGR_INSTR_H
 
+#ifdef __sun
+#include <endian.h>
+#endif
 #include "lld/lld_inst_list_fmt.h"
 
 

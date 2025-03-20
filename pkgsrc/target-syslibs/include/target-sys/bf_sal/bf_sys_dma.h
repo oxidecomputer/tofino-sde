@@ -134,8 +134,11 @@ void *bf_mem_dma2virt(bf_sys_dma_pool_handle_t hndl, bf_dma_addr_t dma_addr);
  * @param phys_addr  physical address of buffer
  * @return Status 0 on Success, -1 on failure
  */
-int bf_sys_dma_alloc(bf_sys_dma_pool_handle_t hndl, size_t size, void **v_addr,
-                     bf_phys_addr_t *phys_addr);
+int _bf_sys_dma_alloc(bf_sys_dma_pool_handle_t hndl, size_t size, void **v_addr,
+                     bf_phys_addr_t *phys_addr, const char *file, int line);
+
+#define bf_sys_dma_alloc(hdl, size, vaddr, paddr) \
+    _bf_sys_dma_alloc(hdl, size, vaddr, paddr, __FILE__, __LINE__)
 
 /**
  * get the physical address from the cached values of a DMA memory pool
@@ -170,30 +173,6 @@ int bf_sys_dma_buffer_index(bf_sys_dma_pool_handle_t hndl, void *v_addr);
  * @return none
  */
 void bf_sys_dma_free(bf_sys_dma_pool_handle_t hndl, void *v_addr);
-
-/* convenient wrapper API if one needs just one buffer in the pool */
-/**
- * Allocate a single buffer DMA memory pool
- * @param pool_name name of the pool
- * @param hndl returns pool handle for future pool operations
- * @param dev_id bf device id
- * @param subdev_id bf subdevice id
- * @param size size in bytes of each buffer in the pool
- * @param v_addr  pointer to virtual address of buffer
- * @param phys_addr  physical address of buffer
- * @return Status 0 on Success, -1 on failure
- */
-int bf_sys_dma_buffer_alloc(char *pool_name, bf_sys_dma_pool_handle_t *hndl,
-                            int dev_id, uint32_t subdv_id, size_t size,
-                            void **v_addr, bf_phys_addr_t *phys_addr);
-
-/**
- * Destroys a single buffer DMA memory pool
- * @param pool_name name of the pool
- * @param v_addr virtual address of a buffer
- * @return none
- */
-void bf_sys_dma_buffer_free(bf_sys_dma_pool_handle_t hndl, void *v_addr);
 
 /**
  * bus map a dma buffer

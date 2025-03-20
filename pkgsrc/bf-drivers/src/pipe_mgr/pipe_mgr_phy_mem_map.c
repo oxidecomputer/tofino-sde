@@ -29,6 +29,9 @@
 #include <math.h>
 #include <unistd.h>
 #include <dlfcn.h>
+#ifdef __sun
+#include <limits.h>
+#endif
 
 /* Module header files */
 #include <dvm/bf_drv_intf.h>

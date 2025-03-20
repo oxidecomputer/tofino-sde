@@ -26,6 +26,9 @@
  */
 
 #include <sched.h>
+#ifdef __sun
+#include <endian.h>
+#endif
 /* Module header files */
 #include <sys/types.h>
 #include <sched.h>

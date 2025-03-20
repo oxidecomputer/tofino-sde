@@ -79,6 +79,7 @@ typedef struct pm_port_t {
   bool an;                // AN disabled=false, AN enabled=true
   bool en;                // disabled=false, enabled=true
   bool up;                // down=false, up=true
+  bool presence;	  // presence-detect bit
   bf_sys_mutex_t pm_mtx;  // Lock to protect critical sections
   bool pm_mtx_init;       // indicates pm_mtx was initialized
 #ifdef USE_BF_SYSLIB_TIMERS

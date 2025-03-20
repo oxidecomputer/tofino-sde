@@ -40,6 +40,7 @@
 
 #include <tofino/bf_pal/bf_pal_port_intf.h>
 #include <dvm/bf_drv_intf.h>
+#include <bf_pm/bf_pm_fsm_common.h>
 #include <bf_pm/bf_pm_intf.h>
 #include <dvm/bf_drv_intf.h>
 #include <target-utils/uCli/ucli.h>
