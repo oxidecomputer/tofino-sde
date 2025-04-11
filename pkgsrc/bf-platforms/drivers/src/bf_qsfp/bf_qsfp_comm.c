@@ -3602,12 +3602,23 @@ static int cmis_calc_application_count(int port, int *app_count) {
   if (port > bf_plt_max_qsfp) {
     return -1;
   }
+  int rc = 0;
   uint8_t host_id;
 
   *app_count = 0;
   do {
-    bf_qsfp_field_read_onebank(
-        port, APSEL1_HOST_ID, 0, (*app_count * BYTES_PER_APP), 1, &host_id);
+    if ((rc = bf_qsfp_field_read_onebank(port,
+                                   APSEL1_HOST_ID,
+                                   0,
+                                   (*app_count * BYTES_PER_APP),
+                                   1,
+                                   &host_id))
+        < 0)
+    {
+        LOG_ERROR("Failed to compute application count for "
+                  "QSFP %2d: error = %d", port, rc);
+        return (rc);
+    }
     (*app_count)++;
     //  LOG_DEBUG("QSFP    %2d : App00 %d : host_id 0x%x", port, cur_app,
     //  host_id);
@@ -3616,12 +3627,18 @@ static int cmis_calc_application_count(int port, int *app_count) {
   if ((host_id != 0xFF) && (!bf_qsfp_is_flat_mem(port))) {
     // not yet at end of list, list continues on Pg 1
     do {
-      bf_qsfp_field_read_onebank(port,
+      if ((rc = bf_qsfp_field_read_onebank(port,
                                  APSEL9_HOST_ID,
                                  0,
                                  ((*app_count - 9) * BYTES_PER_APP),
                                  1,
-                                 &host_id);
+                                 &host_id)
+          ) < 0)
+      {
+        LOG_ERROR("Failed to compute application count for "
+                  "QSFP %2d: error = %d", port, rc);
+        return (rc);
+      }
       (*app_count)++;
       //    LOG_DEBUG("QSFP %2d : App01 %d : host_id 0x%x", port, cur_app,
       //    host_id);
