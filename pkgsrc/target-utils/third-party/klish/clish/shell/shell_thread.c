@@ -21,6 +21,9 @@
 #include <ctype.h>
 #include <sys/ioctl.h>
 
+#if __sun
+#include <stropts.h>
+#endif
 #include <signal.h>
 #if HAVE_LANGINFO_CODESET
 #include <langinfo.h>
@@ -270,6 +273,15 @@ static bool open_pty(int *fdm, int *fds)
 		return false;
 	}
 
+#if __sun
+	if (ioctl(slave_fd, I_PUSH, "ptem") != 0 ||
+	    ioctl(slave_fd, I_PUSH, "ldterm") != 0) {
+		perror("pushing modules");
+		close(master_fd);
+		close(master_fd);
+		return false;
+	}
+#endif
 	*fdm = master_fd;
 	*fds = slave_fd;
 	return true;
