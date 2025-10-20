@@ -21,6 +21,10 @@ set -o errexit
 set -o pipefail
 set -o xtrace
 
+uname -a
+pkg list | grep python
+
+pkg update
 export PATH=$PATH:/home/build/.local/bin
 
 banner "packages"
