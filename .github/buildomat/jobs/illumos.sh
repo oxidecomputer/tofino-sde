@@ -29,8 +29,14 @@ banner "packages"
 wget https://oxide-tofino-build.s3.us-west-2.amazonaws.com/tofino_deps.p5p
 pfexec pkg install -g ./tofino_deps.p5p boost abseil
 
-echo pfexec pkg install cmake gcc12 bdw-gc
-python -m pip install jsl pyinstaller
+python -m pip install jsl # pyinstaller
+
+banner "building pyinstaller"
+# Temporary until https://github.com/pyinstaller/pyinstaller/issues/9280 is fixed
+git clone https://github.com/Nieuwejaar/pyinstaller.git
+cd pyinstaller
+python -m pip install .
+cd ..
 
 banner "build"
 ./oxide/build.sh
