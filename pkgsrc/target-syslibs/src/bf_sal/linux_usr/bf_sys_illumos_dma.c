@@ -48,7 +48,6 @@ typedef struct dma_buf_s {
 typedef struct dma_pool_s {
 	char		dp_name[MAX_NAME_LEN];
 
-	pthread_mutex_t	dp_mutex;
 	caddr_t		dp_start;		// start of the pool's VA range
 	caddr_t		dp_end;			// end of the pool's VA range
 	size_t		dp_pool_size;		// bytes allocated for the pool
@@ -61,6 +60,7 @@ typedef struct dma_pool_s {
 	uint32_t	dp_pfn_shift;		// for pa->pfn calculation
 	uint32_t	dp_page_size;		// size of the pages in the pool
 
+	pthread_mutex_t	dp_mutex;		// protects the freelist
 	dma_buf_t *dp_bufs;			// all buffer structures
 	dma_buf_t *dp_head;			// head of the freelist
 	dma_buf_t *dp_tail;			// tail of the freelist
