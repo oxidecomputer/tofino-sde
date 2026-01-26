@@ -43,6 +43,7 @@
 #include <tof2_regs/tof2_reg_drv.h>
 #include <tof3_regs/tof3_reg_drv.h>
 #include "lld.h"
+#include "lldlib_log.h"
 #include "lld_diag.h"
 #include "lld_diag_ext.h"
 #include "lld_dev.h"
@@ -1670,14 +1671,9 @@ int dump_field_name_by_offset(bf_dev_id_t dev_id,
   for (fld = 0; fld < reg_desc->decoder->n_flds; fld++) {
     if ((fld_list[fld].lsb <= bit_in_widereg) &&
         (fld_list[fld].msb >= bit_in_widereg)) {
-      if (rl_outstream) {
-        fprintf(rl_outstream,
-                "%-24s : %s",
+      LOG_TRACE("%-24s : %s",
                 fld_list[fld].fld_name,
                 fld_list[fld].fld_desc);
-      } else {
-        printf("%-24s : %s", fld_list[fld].fld_name, fld_list[fld].fld_desc);
-      }
       return 0;
     }
   }
