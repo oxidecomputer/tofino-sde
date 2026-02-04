@@ -15,7 +15,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from dependencies.source.install_boost import install_boost
 from dependencies.source.install_grpc import install_grpc
 from dependencies.source.install_libcli import install_libcli
 from dependencies.source.install_libcrafter import install_libcrafter
@@ -29,7 +28,6 @@ _DEP_TO_FUNC = {
     "libcli": install_libcli,
     "libcrafter": install_libcrafter,
     "pi": install_pi,
-    "boost": install_boost,
     "grpc": install_grpc,
     "thrift": install_thrift,
 }

@@ -47,6 +47,4 @@ libabsl_synchronization.so.2308.0.0
 libabsl_throw_delegate.so.2308.0.0
 libabsl_time.so.2308.0.0
 libabsl_time_zone.so.2308.0.0
-# We include this library because ubuntu ships with 1.74.0.  We should be
-# building with that version instead of 1.67.0.
-libboost_iostreams.so.1.67.0
+# System libboost-all-dev (1.74+) is used instead of vendored boost.

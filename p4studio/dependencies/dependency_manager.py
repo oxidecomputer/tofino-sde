@@ -42,7 +42,6 @@ ALL_DEPENDENCY_GROUPS = [
 ]
 
 ALL_SOURCE_PACKAGES = [
-    'boost',
     'grpc',
     'thrift',
     'libcli',
