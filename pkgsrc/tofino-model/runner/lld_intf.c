@@ -19,7 +19,11 @@
 
 #include <sched.h>
 #include <pthread.h>
+#ifdef __sun
+#include <netinet/tcp.h>
+#else
 #include <linux/tcp.h>
+#endif
 #include <assert.h>
 #include <semaphore.h>
 
@@ -294,7 +298,9 @@ int read_from_socket( int sock, uint8_t *buf, int len )
                 return -1;
             }
         }
+#ifdef TCP_QUICKACK
         setsockopt(sock, IPPROTO_TCP, TCP_QUICKACK, (void *)&i, sizeof(i));
+#endif
 
     } while( n_read < len );
     return n_read;

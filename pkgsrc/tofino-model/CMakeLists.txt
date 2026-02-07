@@ -185,8 +185,14 @@ if(${CMAKE_HOST_APPLE})
     include_directories(AFTER SYSTEM /usr/local/include /usr/include)
 endif()
 
+# add options for illumos build
+if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
+    set(Boost_INCLUDE_DIR "/opt/ooce/boost/include")
+endif()
+
 set(Boost_NO_BOOST_CMAKE ON)
 find_package(Boost 1.67.0 REQUIRED)
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 # default preprocessor and compiler options: each of these is applied to every
 # target unless explicitly overridden for specific source files by a
@@ -223,6 +229,10 @@ add_compile_options(
 # Use -Werror to elevate warnings (and because p4factory does)
         -Werror
         )
+# Disable warnings on illumos to work around upstream bugs
+if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
+    add_compile_options(-Wno-array-bounds -Wno-char-subscripts -Wno-maybe-uninitialized)
+endif()
 # Handle problems with the old version of gcc (4.8.3) that DV uses for tofino, jbay
 if(CMAKE_COMPILER_IS_GNUCC AND (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8.4))
     # prevent gcc 4.8.3 warning about valid {} initialisers
@@ -826,7 +836,9 @@ add_custom_target(configured_chips_libs ALL DEPENDS ${configured_chips})
 # Note: do this *before* tests/utests because ${configure_model_runner} is set in
 # runner and used in tests/utests
 add_subdirectory(runner)
-# pull in utests
+# pull in utests (skip on illumos - crafter library not available)
 add_subdirectory(tests/wrapper)
-add_subdirectory(tests/utests)
-add_subdirectory(tests/simple_test_harness)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "SunOS")
+    add_subdirectory(tests/utests)
+    add_subdirectory(tests/simple_test_harness)
+endif()

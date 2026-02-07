@@ -78,6 +78,7 @@ function configure_build {
         -DASIC=ON  \
         -DTOFINO=OFF \
         -DTOFINO2=ON \
+        -DBUILD_MODEL=ON \
         -DBFRT=ON \
         -DBFRT-GENERIC-FLAGS=OFF \
         -DTHRIFT-DRIVER=OFF \

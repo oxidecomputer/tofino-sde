@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <netinet/in.h>
 #include <netinet/ip.h>
 #include <cstring>
 #include "os_privs.h"
@@ -170,14 +171,15 @@ int os_privs_for_file_access(void) {
 
 #else
 
-// TODO: emulate these if building for non-Linux OS
+// Stub implementations for non-Linux (illumos)
+// These privilege functions are no-ops since we don't use Linux capabilities
 
-int os_privs_init(void)             { assert(0); }
-int os_privs_reset(void)            { assert(0); }
-int os_privs_has_cap_net_raw(void)  { assert(0); }
-int os_privs_drop_permanently(void) { assert(0); }
-int os_privs_for_veth_attach(void)  { assert(0); }
-int os_privs_for_file_access(void)  { assert(0); }
-int os_privs_dropped(void)          { assert(0); }
+int os_privs_init(void)             { return 0; }
+int os_privs_reset(void)            { return 0; }
+int os_privs_has_cap_net_raw(void)  { return 0; }  // No raw cap, matches stubbed portmanager
+int os_privs_drop_permanently(void) { return 0; }
+int os_privs_for_veth_attach(void)  { return 0; }
+int os_privs_for_file_access(void)  { return 0; }
+int os_privs_dropped(void)          { return 1; }  // Pretend dropped
 
 #endif

@@ -41,6 +41,11 @@ endif()
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
+# Add /usr/local to search paths for illumos (libcli is installed there)
+if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
+    list(APPEND CMAKE_PREFIX_PATH "/usr/local")
+endif()
+
 # find library for lib_name with specific suffix and store in var_name; similar
 # to built-in find_library but with additional suffix argument
 function(find_specific_library var_name lib_name suffix)
@@ -56,7 +61,12 @@ endfunction()
 if (${runner-static-partial})
     find_specific_library(CLI_LIB cli ".so")
     find_specific_library(PCAP_LIB pcap ".so")
-    find_specific_library(CRYPT_LIB crypt ".a")
+    # illumos has no static libcrypt.a
+    if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
+        find_specific_library(CRYPT_LIB crypt ".so")
+    else()
+        find_specific_library(CRYPT_LIB crypt ".a")
+    endif()
 elseif (${runner-static})
     find_specific_library(CLI_LIB cli ".a")
     find_specific_library(PCAP_LIB pcap ".a")
@@ -99,11 +109,16 @@ else ()
     # from bf-drivers
     ###############################################################################
     message("Configuring model runner library targets")
+    if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
+        set(PORTMANAGER_SRC ${CMAKE_CURRENT_SOURCE_DIR}/portmanager_stub.c)
+    else()
+        set(PORTMANAGER_SRC ${CMAKE_CURRENT_SOURCE_DIR}/portmanager.c)
+    endif()
     add_library(modelrunner_extra STATIC
             ${CMAKE_CURRENT_SOURCE_DIR}/bmi_interface.c
             ${CMAKE_CURRENT_SOURCE_DIR}/bmi_port.c
             ${CMAKE_CURRENT_SOURCE_DIR}/cli.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/portmanager.c
+            ${PORTMANAGER_SRC}
             )
     target_include_directories(modelrunner_extra PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}
@@ -145,7 +160,7 @@ else ()
             ${CMAKE_INSTALL_PREFIX}/include
             )
 
-    if (${runner-static-partial})
+    if (${runner-static-partial} AND NOT CMAKE_SYSTEM_NAME STREQUAL "SunOS")
         target_link_libraries(tofino-model.debug PRIVATE
                 -static-libstdc++ -static-libgcc
                 ${CLI_LIB}
@@ -156,7 +171,7 @@ else ()
                 dru_model
                 Threads::Threads
                 )
-    elseif (${runner-static})
+    elseif (${runner-static} AND NOT CMAKE_SYSTEM_NAME STREQUAL "SunOS")
         target_link_libraries(tofino-model.debug PRIVATE
                 -static
                 "-Wl,${WHOLE_ARCHIVE} -lpthread -Wl,${NO_WHOLE_ARCHIVE}"
@@ -174,6 +189,9 @@ else ()
                 dru_model
                 Threads::Threads
                 )
+        if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
+            target_link_libraries(tofino-model.debug PRIVATE socket nsl)
+        endif()
     endif ()
 
     ###############################################################################
