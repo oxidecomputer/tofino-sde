@@ -653,6 +653,19 @@ pipe_status_t pipe_mgr_ctxjson_tof_snapshot_capture_field_value_get(
     uint64_t *field_value,
     bool *field_valid);
 
+pipe_status_t pipe_mgr_ctxjson_tof_snapshot_capture_field_value_get_bytes(
+    bf_dev_id_t devid,
+    profile_id_t prof_id,
+    dev_stage_t stage,
+    int direction,
+    uint8_t *pd_capture,
+    uint8_t *pd_capture_v,
+    char *field_name,
+    uint8_t *out_value,
+    int out_len,
+    int *out_width,
+    bool *field_valid);
+
 pipe_status_t pipe_mgr_ctxjson_snapshot_trig_field_set_from_pd(
     pipe_snapshot_hdl_t hdl,
     bf_dev_id_t devid,

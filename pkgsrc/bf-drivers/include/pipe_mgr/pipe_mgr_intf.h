@@ -3609,6 +3609,33 @@ bf_status_t bf_snapshot_capture_trigger_field_add(pipe_snapshot_hdl_t hdl,
                                                   uint64_t value,
                                                   uint64_t mask);
 
+#define BF_SNAPSHOT_FIELD_NAME_LEN 100
+
+/**
+ * Snapshot trigger field specification.  Passed by value to avoid
+ * pointer lifetime concerns across FFI boundaries.
+ *
+ * value and mask are big-endian byte arrays: byte[0] is the MSB.
+ */
+typedef struct bf_snapshot_trigger_field {
+  uint8_t value[16];
+  uint8_t mask[16];
+  char name[BF_SNAPSHOT_FIELD_NAME_LEN];
+} bf_snapshot_trigger_field_t;
+
+/**
+ * Add one snapshot capture trigger field using a by-value struct.
+ * Unlike bf_snapshot_capture_trigger_field_add, this variant supports
+ * fields wider than 64 bits (e.g. IPv6 addresses).
+ *
+ * @param[in] hdl             Snapshot handle
+ * @param[in] field           Trigger field (name, value, mask)
+ * @return                    Status of the API call
+ */
+bf_status_t bf_snapshot_capture_trigger_field_add_bytes(
+    pipe_snapshot_hdl_t hdl,
+    bf_snapshot_trigger_field_t field);
+
 /**
  * The function be used to get trigger field value and mask.
  *
@@ -3681,6 +3708,19 @@ bf_status_t bf_snapshot_capture_decode_field_value(pipe_snapshot_hdl_t hdl,
                                                    char *field_name,
                                                    uint64_t *field_value,
                                                    bool *field_valid);
+
+bf_status_t bf_snapshot_capture_decode_field_value_bytes(
+    pipe_snapshot_hdl_t hdl,
+    bf_dev_pipe_t pipe,
+    dev_stage_t stage,
+    uint8_t *capture,
+    int num_captures,
+    char *field_name,
+    uint8_t *out_value,
+    int out_len,
+    int *out_width,
+    bool *field_valid);
+
 /**
  * The function be used to set the snapshot state
  *

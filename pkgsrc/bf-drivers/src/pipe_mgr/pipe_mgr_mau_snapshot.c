@@ -2696,6 +2696,81 @@ bf_status_t bf_snapshot_capture_decode_field_value(pipe_snapshot_hdl_t hdl,
   return BF_INVALID_ARG;
 }
 
+/* Decode a named field from a snapshot capture into a byte buffer.
+ * Works for fields of any width (including >64-bit fields like IPv6). */
+bf_status_t bf_snapshot_capture_decode_field_value_bytes(
+    pipe_snapshot_hdl_t hdl,
+    bf_dev_pipe_t pipe,
+    dev_stage_t stage,
+    uint8_t *capture,
+    int num_captures,
+    char *field_name,
+    uint8_t *out_value,
+    int out_len,
+    int *out_width,
+    bool *field_valid) {
+  int capture_idx = 0;
+  bf_dev_id_t dev = 0;
+  dev_stage_t s_stage = 0, e_stage = 0;
+  int dir = 0, s_idx = 0;
+  profile_id_t prof_id = 0;
+  uint32_t total_size = 0, stage_size = 0;
+  bf_status_t status = BF_SUCCESS;
+
+  if (!pipe_mgr_snapshot_hdl_valid(hdl)) {
+    return BF_INVALID_ARG;
+  }
+  status = pipe_mgr_snapshot_hdl_to_dev_params(
+      hdl, &dev, NULL, &s_stage, &e_stage, &dir);
+  if (status != BF_SUCCESS) {
+    LOG_ERROR("Could not convert snapshot hdl 0x%x to dev params", hdl);
+    return status;
+  }
+  rmt_dev_info_t *dev_info = pipe_mgr_get_dev_info(dev);
+  if (!dev_info) {
+    LOG_ERROR("Invalid device %d for snapshot 0x%x", dev, hdl);
+    PIPE_MGR_DBGCHK(0);
+    return BF_INVALID_ARG;
+  }
+  if (pipe_mgr_pipe_to_profile(dev_info, pipe, &prof_id, __func__, __LINE__) !=
+      PIPE_SUCCESS) {
+    return PIPE_INVALID_ARG;
+  }
+  bf_snapshot_capture_phv_fields_dict_size(hdl, &total_size, &stage_size);
+
+  capture_idx = 0;
+  for (s_idx = s_stage; (s_idx <= e_stage) && (capture_idx < num_captures);
+       s_idx++, capture_idx++) {
+    if (stage != s_idx) {
+      continue;
+    }
+
+    uint8_t *data = (uint8_t *)capture + (capture_idx * stage_size);
+    uint8_t *data_v = NULL;
+    if (dev_info->dev_family == BF_DEV_FAMILY_TOFINO) {
+      data_v =
+          (uint8_t *)capture + total_size - PIPE_MGR_TOF_NUM_TOTAL_PHV / 8;
+    }
+    // Stage passed to value get should be increased by 1 for proper decoding
+    status = pipe_mgr_ctxjson_tof_snapshot_capture_field_value_get_bytes(
+        dev,
+        prof_id,
+        s_idx + 1,
+        dir,
+        data,
+        data_v,
+        field_name,
+        out_value,
+        out_len,
+        out_width,
+        field_valid);
+
+    return status;
+  }
+
+  return BF_INVALID_ARG;
+}
+
 /* Snapshot interrupt clear helper */
 pipe_status_t pipe_mgr_snapshot_interrupt_clear(bf_dev_id_t dev,
                                                 bf_dev_pipe_t pipe,
@@ -3739,16 +3814,20 @@ static pipe_status_t pipe_mgr_snapshot_field_validate(bf_dev_id_t dev,
             break;
           case 1:  // mocha phv
             // If stage is match dependent then mocha can be used as normal phv
-            // for triggering, otherwise return PIPE_INVALID_ARG;
+            // for triggering, otherwise skip this container.
             if (!trig_field) break;
             if (pipe_mgr_stage_match_dependent_get(dev, prof_id, stage, dir))
               break;
             else
-              return PIPE_INVALID_ARG;
+              continue;  // not matchable; keep scanning for normal containers
           case 2:  // dark phv
             if (!trig_field) break;
-            // Dark PHV cannot be used as a trigger field.
-            return PIPE_INVALID_ARG;
+            // Dark PHV cannot be used as a trigger -- skip this container
+            // but keep scanning for matchable (normal) containers.
+            // The field dictionary is global (same for every stage), so a
+            // field that lives in dark PHV at some stages may still have
+            // normal containers that are perfectly usable for triggering.
+            continue;
           default:  // unknown phv
             PIPE_MGR_DBGCHK(0);
         }
@@ -4002,6 +4081,153 @@ static pipe_status_t snapshot_capture_trigger_field_add(pipe_snapshot_hdl_t hdl,
   return status;
 }
 
+/* Add a field to the list of triggers (byte-array variant for wide fields) */
+static pipe_status_t snapshot_capture_trigger_field_add_bytes(
+    pipe_snapshot_hdl_t hdl,
+    char *field_name,
+    uint8_t *value,
+    uint8_t *mask,
+    int len) {
+  pipe_status_t status = PIPE_SUCCESS;
+  pipe_snap_hdl_info_t *hdl_info = NULL;
+  bf_dev_id_t dev = 0;
+  bf_dev_pipe_t pipe = 0;
+  int dir = 0, idx = 0;
+  bool field_inserted = false, field_found = false, oper_stage_set = false;
+  dev_stage_t s_stage = 0, e_stage = 0, stage = 0;
+  int width = 0;
+
+  PIPE_SNAP_DBG("Dbg Trigger: Adding Field %s (bytes, len=%d)\n",
+                field_name,
+                len);
+
+  if (!pipe_mgr_snapshot_hdl_valid(hdl)) {
+    return PIPE_INVALID_ARG;
+  }
+
+  pipe_mgr_snapshot_hdl_to_dev_params(
+      hdl, &dev, &pipe, &s_stage, &e_stage, &dir);
+
+  hdl_info = pipe_mgr_snap_hdl_info_get(dev, hdl);
+  if (!hdl_info) {
+    LOG_ERROR("Handle info is null for handle 0x%x", hdl);
+    return PIPE_INVALID_ARG;
+  }
+
+  /* Validate the field name */
+  for (stage = s_stage; stage <= e_stage; stage++) {
+    status = pipe_mgr_snapshot_trig_field_validate(
+        dev, pipe, stage, dir, field_name, &field_found, &width);
+    if (status != PIPE_SUCCESS) {
+      PIPE_SNAP_DBG(
+          "Field name %s can not be added due to container_type in stage %d \n",
+          field_name,
+          stage);
+      LOG_ERROR(
+          "Field name %s can not be added due to container_type in dev_id %d, "
+          "stage %d, direction %d\n",
+          field_name,
+          dev,
+          stage,
+          dir);
+      continue;
+    }
+    if (!field_found) {
+      PIPE_SNAP_DBG(
+          "Field name %s does not exist in stage %d \n", field_name, stage);
+    } else {
+      if (stage == hdl_info->oper_stage) {
+        oper_stage_set = true;
+        break;
+      } else {
+        status = pipe_mgr_snapshot_capture_trigger_fields_validate(hdl, stage);
+        if (status == PIPE_SUCCESS) {
+          if (!oper_stage_set) {
+            hdl_info->oper_stage = stage;
+            oper_stage_set = true;
+            PIPE_SNAP_DBG("Snapshot 0x%x oper-stage changed to %d \n",
+                          hdl,
+                          hdl_info->oper_stage);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  if (!oper_stage_set) {
+    LOG_ERROR(
+        "Field name %s does not exist or not all trigger fields exist in a "
+        "stage \n",
+        field_name);
+    return PIPE_INVALID_ARG;
+  }
+
+  /* Clamp caller length to the field width from the SDE and to the storage
+   * capacity of the trigger field info structure (16 bytes). */
+  int copy_len = len < width ? len : width;
+  if (copy_len > (int)sizeof(PIPE_MGR_SNAP_HDL_FIELD(hdl_info, 0).value)) {
+    copy_len = sizeof(PIPE_MGR_SNAP_HDL_FIELD(hdl_info, 0).value);
+  }
+
+  /* The value/mask byte arrays are big-endian: byte[0] is the MSB.
+   * If the caller supplies fewer bytes than the field width, right-align
+   * (pad leading bytes with zero so the supplied bytes correspond to
+   * the least-significant portion of the field).  If the caller supplies
+   * more bytes, only the last 'width' bytes are used. */
+  int field_start = width - copy_len;  /* leading zeros in field */
+  int src_start = len > copy_len ? len - copy_len : 0;
+
+  for (idx = 0; idx < (int)hdl_info->num_trig_fields; idx++) {
+    /* Modifying an existing trigger field */
+    if (PIPE_MGR_SNAP_HDL_FIELD(hdl_info, idx).valid) {
+      if (strcmp(field_name, PIPE_MGR_SNAP_HDL_FIELD(hdl_info, idx).name) ==
+          0) {
+        PIPE_MGR_SNAP_HDL_FIELD(hdl_info, idx).width = width;
+        PIPE_MGR_MEMSET(PIPE_MGR_SNAP_HDL_FIELD(hdl_info, idx).value, 0, 16);
+        PIPE_MGR_MEMSET(PIPE_MGR_SNAP_HDL_FIELD(hdl_info, idx).mask, 0, 16);
+        PIPE_MGR_MEMCPY(
+            &PIPE_MGR_SNAP_HDL_FIELD(hdl_info, idx).value[field_start],
+            &value[src_start],
+            copy_len);
+        PIPE_MGR_MEMCPY(
+            &PIPE_MGR_SNAP_HDL_FIELD(hdl_info, idx).mask[field_start],
+            &mask[src_start],
+            copy_len);
+        field_inserted = true;
+        break;
+      } else {
+        continue;
+      }
+    }
+    /* Adding a new trigger field */
+    PIPE_MGR_SNAP_HDL_FIELD(hdl_info, idx).valid = true;
+    strncpy(PIPE_MGR_SNAP_HDL_FIELD(hdl_info, idx).name,
+            field_name,
+            PIPE_SNAP_TRIG_FIELD_NAME_LEN - 1);
+    PIPE_MGR_SNAP_HDL_FIELD(hdl_info, idx).width = width;
+    PIPE_MGR_MEMSET(PIPE_MGR_SNAP_HDL_FIELD(hdl_info, idx).value, 0, 16);
+    PIPE_MGR_MEMSET(PIPE_MGR_SNAP_HDL_FIELD(hdl_info, idx).mask, 0, 16);
+    PIPE_MGR_MEMCPY(
+        &PIPE_MGR_SNAP_HDL_FIELD(hdl_info, idx).value[field_start],
+        &value[src_start],
+        copy_len);
+    PIPE_MGR_MEMCPY(
+        &PIPE_MGR_SNAP_HDL_FIELD(hdl_info, idx).mask[field_start],
+        &mask[src_start],
+        copy_len);
+    field_inserted = true;
+    break;
+  }
+
+  if (!field_inserted) {
+    LOG_ERROR("Dbg: Out of space in trigger spec \n");
+    return PIPE_NO_SYS_RESOURCES;
+  }
+
+  return status;
+}
+
 /* Add a field to the list of triggers */
 bf_status_t bf_snapshot_capture_trigger_field_add(pipe_snapshot_hdl_t hdl,
                                                   char *field_name,
@@ -4050,6 +4276,55 @@ bf_status_t bf_snapshot_capture_trigger_field_add(pipe_snapshot_hdl_t hdl,
   }
 
 done:
+  pipe_mgr_api_exit(shdl);
+  return bf_status;
+}
+
+/* Add a field to the list of triggers (by-value struct for wide fields) */
+bf_status_t bf_snapshot_capture_trigger_field_add_bytes(
+    pipe_snapshot_hdl_t hdl,
+    bf_snapshot_trigger_field_t field) {
+  bf_status_t bf_status = BF_SUCCESS;
+  pipe_status_t status = PIPE_SUCCESS;
+  bf_dev_id_t dev = 0;
+  bf_dev_pipe_t pipe = 0;
+  dev_stage_t stage = 0, s_stage = 0, e_stage = 0;
+  int dir = 0;
+
+  if (!pipe_mgr_snapshot_hdl_valid(hdl)) {
+    return BF_INVALID_ARG;
+  }
+  pipe_mgr_snapshot_hdl_to_dev_params(
+      hdl, &dev, &pipe, &s_stage, &e_stage, &dir);
+
+  pipe_sess_hdl_t shdl = pipe_mgr_ctx->int_ses_hndl;
+  status = pipe_mgr_api_enter(shdl);
+  if (status != PIPE_SUCCESS) return status;
+
+  /* Add field to DB */
+  status = snapshot_capture_trigger_field_add_bytes(
+      hdl, field.name, field.value, field.mask, sizeof(field.value));
+  if (status != PIPE_SUCCESS) {
+    bf_status = BF_INVALID_ARG;
+    goto done_bytes;
+  }
+  LOG_TRACE("Dev %d snapshot 0x%x Added trigger (bytes) for %s",
+            dev,
+            hdl,
+            field.name);
+
+  /* Re-evaulate fsm state's for all stages as oper-stage might have changed */
+  pipe_mgr_reevaluate_program_fsm_states(hdl);
+
+  /* program new match field only in oper_stage */
+  for (stage = s_stage; stage <= e_stage; stage++) {
+    status = snapshot_capture_trigger_set(hdl, dev, pipe, stage, dir);
+    if (status != PIPE_SUCCESS) {
+      bf_status |= BF_INVALID_ARG;
+    }
+  }
+
+done_bytes:
   pipe_mgr_api_exit(shdl);
   return bf_status;
 }
