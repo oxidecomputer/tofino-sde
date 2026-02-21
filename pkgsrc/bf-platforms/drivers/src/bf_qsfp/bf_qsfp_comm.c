@@ -3379,10 +3379,7 @@ static int qsfp_sff8636_populate_app_list(int port) {
         "%s:%d\n",
         __func__,
         __LINE__);
-<<<<<<< HEAD
     return -1;
-=======
->>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
   }
 
   // Get the ethernet extended compliance type of the cable
@@ -3393,10 +3390,7 @@ static int qsfp_sff8636_populate_app_list(int port) {
         "%s:%d\n",
         __func__,
         __LINE__);
-<<<<<<< HEAD
     return -1;
-=======
->>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
   }
 
   // Get the ethernet extended compliance type of the cable
@@ -3407,10 +3401,7 @@ static int qsfp_sff8636_populate_app_list(int port) {
         "%s:%d\n",
         __func__,
         __LINE__);
-<<<<<<< HEAD
     return -1;
-=======
->>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
   }
 
   // Populate App structure with Ethernet compliance
@@ -3611,15 +3602,11 @@ static int cmis_calc_application_count(int port, int *app_count) {
   if (port > bf_plt_max_qsfp) {
     return -1;
   }
-<<<<<<< HEAD
   int rc = 0;
-=======
->>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
   uint8_t host_id;
 
   *app_count = 0;
   do {
-<<<<<<< HEAD
     if ((rc = bf_qsfp_field_read_onebank(port,
                                    APSEL1_HOST_ID,
                                    0,
@@ -3632,10 +3619,6 @@ static int cmis_calc_application_count(int port, int *app_count) {
                   "QSFP %2d: error = %d", port, rc);
         return (rc);
     }
-=======
-    bf_qsfp_field_read_onebank(
-        port, APSEL1_HOST_ID, 0, (*app_count * BYTES_PER_APP), 1, &host_id);
->>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
     (*app_count)++;
     //  LOG_DEBUG("QSFP    %2d : App00 %d : host_id 0x%x", port, cur_app,
     //  host_id);
@@ -3644,16 +3627,11 @@ static int cmis_calc_application_count(int port, int *app_count) {
   if ((host_id != 0xFF) && (!bf_qsfp_is_flat_mem(port))) {
     // not yet at end of list, list continues on Pg 1
     do {
-<<<<<<< HEAD
       if ((rc = bf_qsfp_field_read_onebank(port,
-=======
-      bf_qsfp_field_read_onebank(port,
->>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
                                  APSEL9_HOST_ID,
                                  0,
                                  ((*app_count - 9) * BYTES_PER_APP),
                                  1,
-<<<<<<< HEAD
                                  &host_id)
           ) < 0)
       {
@@ -3661,9 +3639,6 @@ static int cmis_calc_application_count(int port, int *app_count) {
                   "QSFP %2d: error = %d", port, rc);
         return (rc);
       }
-=======
-                                 &host_id);
->>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
       (*app_count)++;
       //    LOG_DEBUG("QSFP %2d : App01 %d : host_id 0x%x", port, cur_app,
       //    host_id);
@@ -3815,10 +3790,7 @@ static int bf_qsfp_update_cache(int port) {
           "%s:%d\n",
           __func__,
           __LINE__);
-<<<<<<< HEAD
       return -1;
-=======
->>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
     }
 
     bf_pltfm_qsfpdd_type_t cmis_type;
@@ -3827,10 +3799,7 @@ static int bf_qsfp_update_cache(int port) {
                 port,
                 __func__,
                 __LINE__);
-<<<<<<< HEAD
       return -1;
-=======
->>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
     }
 
     if (cmis_type == BF_PLTFM_QSFPDD_OPT) {
@@ -3846,10 +3815,7 @@ static int bf_qsfp_update_cache(int port) {
           "%s:%d\n",
           __func__,
           __LINE__);
-<<<<<<< HEAD
       return -1;
-=======
->>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
     }
     LOG_DEBUG("QSFP    %2d : Application count = %d",
               port,
@@ -3872,10 +3838,7 @@ static int bf_qsfp_update_cache(int port) {
           "%s:%d\n",
           __func__,
           __LINE__);
-<<<<<<< HEAD
       return -1;
-=======
->>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
     }
   } else {  // SFF-8636
     // page 00h (lower), bytes 107-116
@@ -3895,10 +3858,7 @@ static int bf_qsfp_update_cache(int port) {
                 port,
                 __func__,
                 __LINE__);
-<<<<<<< HEAD
       return -1;
-=======
->>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
     }
     if (qsfp_type == BF_PLTFM_QSFP_OPT) {
       bf_qsfp_info_arr[port].passive_cu = false;
@@ -3920,18 +3880,11 @@ static int bf_qsfp_update_cache(int port) {
     }
     if (qsfp_sff8636_populate_app_list(port) != 0) {
       LOG_ERROR(
-<<<<<<< HEAD
           "Error : populating the Application list at "
           "%s:%d\n",
           __func__,
           __LINE__);
       return -1;
-=======
-          "Error : populating the Ethernet compliance list at "
-          "%s:%d\n",
-          __func__,
-          __LINE__);
->>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
     }
   }
 
@@ -4834,12 +4787,6 @@ int bf_qsfp_type_get(int port, bf_pltfm_qsfp_type_t *qsfp_type) {
 
   Ethernet_compliance eth_comp;
   if (bf_qsfp_get_eth_compliance(port, &eth_comp) != 0) {
-<<<<<<< HEAD
-=======
-    // Default to Copper Loop back in case of error
-
-    *qsfp_type = BF_PLTFM_QSFP_CU_LOOP;
->>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
     return -1;
   }
 
@@ -5149,12 +5096,7 @@ int bf_cmis_type_get(int port, bf_pltfm_qsfpdd_type_t *qsfp_type) {
   uint8_t media_type;
   if (bf_qsfp_field_read_onebank(
           port, MODULE_MEDIA_TYPE, 0, 0, 1, &media_type) < 0) {
-<<<<<<< HEAD
     return -1;
-=======
-    *qsfp_type = BF_PLTFM_QSFPDD_UNKNOWN;
-    return 0;
->>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
   }
 
   if ((media_type == MEDIA_TYPE_SMF) || (media_type == MEDIA_TYPE_MMF) ||
@@ -5168,7 +5110,6 @@ int bf_cmis_type_get(int port, bf_pltfm_qsfpdd_type_t *qsfp_type) {
 
   if (cable_len == 0.0) {
     *qsfp_type = BF_PLTFM_QSFPDD_CU_LOOP;
-<<<<<<< HEAD
   } else if (cable_len <= 0.5f) {
     *qsfp_type = BF_PLTFM_QSFPDD_CU_0_5_M;
   } else if (cable_len <= 1.0f) {
@@ -5179,24 +5120,6 @@ int bf_cmis_type_get(int port, bf_pltfm_qsfpdd_type_t *qsfp_type) {
     *qsfp_type = BF_PLTFM_QSFPDD_CU_2_M;
   } else if (cable_len == 2.5f) {
     *qsfp_type = BF_PLTFM_QSFPDD_CU_2_5_M;
-=======
-    return 0;
-  } else if (cable_len <= 0.5f) {
-    *qsfp_type = BF_PLTFM_QSFPDD_CU_0_5_M;
-    return 0;
-  } else if (cable_len <= 1.0f) {
-    *qsfp_type = BF_PLTFM_QSFPDD_CU_1_M;
-    return 0;
-  } else if (cable_len <= 1.5f) {
-    *qsfp_type = BF_PLTFM_QSFPDD_CU_1_5_M;
-    return 0;
-  } else if (cable_len == 2.0f) {
-    *qsfp_type = BF_PLTFM_QSFPDD_CU_2_M;
-    return 0;
-  } else if (cable_len == 2.5f) {
-    *qsfp_type = BF_PLTFM_QSFPDD_CU_2_5_M;
-    return 0;
->>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
   } else {  // For all other lengths default to max supported.
     LOG_DEBUG("QSFPDD length %f unsupported for Qsfp %d. Defaulting to 2.5m`n",
               cable_len,

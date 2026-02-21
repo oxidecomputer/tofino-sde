@@ -29,7 +29,6 @@ banner "packages"
 wget https://oxide-tofino-build.s3.us-west-2.amazonaws.com/tofino_deps.p5p
 pfexec pkg install -g ./tofino_deps.p5p boost abseil
 
-<<<<<<< HEAD
 python -m pip install jsl # pyinstaller
 
 banner "building pyinstaller"
@@ -38,10 +37,6 @@ git clone https://github.com/Nieuwejaar/pyinstaller.git
 cd pyinstaller
 python -m pip install .
 cd ..
-=======
-echo pfexec pkg install cmake gcc12 bdw-gc
-python -m pip install jsl pyinstaller
->>>>>>> f7d02167 (Add support for illumos and the Sidecar platform (#3))
 
 banner "build"
 ./oxide/build.sh
