@@ -66,7 +66,6 @@ def install_pi(config: SourceDependencyConfig) -> None:
                                  'CPPFLAGS=-I{install_dir}/include ' \
                                  '--prefix={install_dir} ' \
                                  '--with-proto={proto} ' \
-                                 '--with-boost-libdir={install_dir}/lib ' \
                                  '--without-bmv2 ' \
                                  '--without-internal-rpc ' \
                                  '--without-cli'

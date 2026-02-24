@@ -15,10 +15,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from dependencies.source.install_boost import install_boost
-from dependencies.source.install_bridge_utils import install_bridge_utils
 from dependencies.source.install_grpc import install_grpc
 from dependencies.source.install_libcli import install_libcli
+from dependencies.source.install_libcrafter import install_libcrafter
 from dependencies.source.install_pi import install_pi
 from dependencies.source.install_thrift import install_thrift
 from dependencies.source.source_dependency_config import SourceDependencyConfig
@@ -27,11 +26,10 @@ from utils.terminal import compact_log
 
 _DEP_TO_FUNC = {
     "libcli": install_libcli,
+    "libcrafter": install_libcrafter,
     "pi": install_pi,
-    "boost": install_boost,
     "grpc": install_grpc,
     "thrift": install_thrift,
-    "bridge": install_bridge_utils
 }
 
 

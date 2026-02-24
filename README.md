@@ -57,18 +57,18 @@ and simulating its execution on the model.
 
 Some things not included, that one must get from Intel:
 
++ **Open source members who submit requests to Intel for BSP and driver
+  software for running the SDE on hardware before January 1, 2026 will
+  be granted access. Intel will discontinue granting requests on January 1, 2026.**
 + P4Insight GUI for visualizing the hardware resources used by P4 programs
   after they have been compiled.
   + Note: P4.org personnel are in communication with Intel to see if this
     can be released as open source soon.
-+ Some bfrt_python code is included, but it is not yet clear if all of
-  the pieces required to use it are included yet.  Follow this issue
-  if you are interested:
-  https://github.com/p4lang/open-p4studio/issues/23
 + BSPs (Board Support Packages) that enable the SDE to access and
   configure hardware on a physical board, e.g. configuring physical
   Ethernet ports and manage related components, such as repeaters,
-  retimers, SFPs, QSFPs, etc.
+  retimers, SFPs, QSFPs, etc. Reach out to Intel 
+  (intel.tofino.contact@intel.com) for the BSP package.
 + ASIC-specific Serdes drivers.  These are not necessary for running
   the simulation model, but essential for running the code on the real
   ASICs.  See instructions in the directory `hw`.  The necessary code
@@ -132,6 +132,7 @@ When that script completes, proceed by following the steps in section
     
       * bridge
       * libcli
+      * libcrafter
       * thrift
       * grpc
 

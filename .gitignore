@@ -1,3 +1,6 @@
 build
 packages
 install
+tofino_sde.p5p
+oxide/remote_model/remote_model.so
+.cache

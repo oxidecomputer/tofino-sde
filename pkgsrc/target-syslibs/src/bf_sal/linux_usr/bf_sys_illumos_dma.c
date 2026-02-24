@@ -5,7 +5,6 @@
 #include <strings.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <pthread.h>
 #include <sys/mman.h>
 #include <sys/mem.h>
 

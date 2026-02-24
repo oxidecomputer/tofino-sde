@@ -20,6 +20,7 @@
 
 #include "lld.h"
 #include "lld_log.h"
+#include "lldlib_log.h"
 #include "lld_map.h"
 #include "lld_dev.h"
 #include <lld/lld_reg_if.h>
@@ -33,9 +34,6 @@
 #include <diag/bf_dev_diag.h>
 #include <lld/lld_diag_ext.h>
 #endif
-
-// for telnet access
-extern void *rl_outstream;
 
 extern int get_reg_num_fields(bf_dev_id_t dev_id, uint32_t offset);
 
@@ -185,7 +183,7 @@ bf_status_t lld_tof2_enable_all_pipe_ints_cb(bf_dev_id_t dev_id,
 static void lld_tof2_int_handling(bf_dev_id_t dev_id,
                                   lld_tof2_blk_lvl_int_t *temp_int,
                                   int array_len);
-bf_status_t lld_tof2_read_leaf_status_cb(bf_dev_id_t dev_id,
+static bf_status_t lld_tof2_read_leaf_status_cb(bf_dev_id_t dev_id,
                                          bf_subdev_id_t subdev_id,
                                          void *blk_lvl_int_vd) {
   lld_tof2_blk_lvl_int_t *blk_lvl_int =
@@ -265,7 +263,7 @@ static bf_status_t lld_tof2_int_recursive_find_blk(
   return BF_SUCCESS;
 }
 
-bf_status_t lld_tof2_int_find_blk_lvl_int(lld_tof2_blk_lvl_int_t **array,
+static bf_status_t lld_tof2_int_find_blk_lvl_int(lld_tof2_blk_lvl_int_t **array,
                                           uint8_t *pairs,
                                           uint32_t offset) {
   int i, j;
@@ -532,7 +530,7 @@ void lld_tof2_int_set_shadow_msk_status(bf_dev_id_t dev_id,
   return;
 }
 
-void lld_tof2_int_leaf_enable_set_cb(bf_dev_id_t dev_id,
+static void lld_tof2_int_leaf_enable_set_cb(bf_dev_id_t dev_id,
                                      lld_tof2_blk_lvl_int_t *blk_lvl_int,
                                      bool en) {
   if (en == true) {
@@ -551,7 +549,7 @@ void lld_tof2_int_leaf_enable_set_cb(bf_dev_id_t dev_id,
   }
 }
 
-void lld_tof2_int_leaf_enable_set(bf_dev_id_t dev_id,
+static void lld_tof2_int_leaf_enable_set(bf_dev_id_t dev_id,
                                   lld_tof2_blk_lvl_int_list_t *int_list,
                                   bool en) {
   if (!int_list->is_leaf) {
@@ -757,8 +755,7 @@ bf_status_t lld_tof2_dump_int_list_cb(bf_dev_id_t dev_id,
   int i;
   (void)subdev_id;
   char *path = get_full_reg_path_name(dev_id, blk_lvl_int->status_reg);
-  fprintf(rl_outstream,
-          "%08x : %08x : %08x : %08x : %p : %s\n",
+  LOG_TRACE("%08x : %08x : %08x : %08x : %p : %s",
           blk_lvl_int->status_reg,
           blk_lvl_int->enable_hi_reg,
           blk_lvl_int->enable_lo_reg,
@@ -770,13 +767,11 @@ bf_status_t lld_tof2_dump_int_list_cb(bf_dev_id_t dev_id,
     if (blk_lvl_int->count[dev_id][i] != blk_lvl_int->count_shown[dev_id][i]) {
       int rc;
 
-      fprintf(rl_outstream,
-              ": [%2d:%2d] : %d : ",
+      LOG_TRACE(": [%2d:%2d] : %d",
               i,
               i,
               blk_lvl_int->count[dev_id][i]);
       rc = dump_field_name_by_offset((int)dev_id, blk_lvl_int->status_reg, i);
-      fprintf(rl_outstream, "\n");
       // update "shown"
       blk_lvl_int->count_shown[dev_id][i] = blk_lvl_int->count[dev_id][i];
       if (rc != 0) break;
@@ -800,8 +795,7 @@ bf_status_t lld_tof2_dump_new_ints_cb(bf_dev_id_t dev_id,
   if (dump == 0) return BF_SUCCESS;
 
   char *path = get_full_reg_path_name(dev_id, blk_lvl_int->status_reg);
-  fprintf(rl_outstream,
-          "%08x : %08x : %08x : %08x : %p : %s\n",
+  LOG_TRACE("%08x : %08x : %08x : %08x : %p : %s",
           blk_lvl_int->status_reg,
           blk_lvl_int->enable_hi_reg,
           blk_lvl_int->enable_lo_reg,
@@ -811,14 +805,11 @@ bf_status_t lld_tof2_dump_new_ints_cb(bf_dev_id_t dev_id,
 
   for (i = 0; i < LLD_TOF2_COUNT_NUMB; i++) {
     if (blk_lvl_int->count[dev_id][i] != blk_lvl_int->count_shown[dev_id][i]) {
-      fprintf(
-          rl_outstream,
-          ": [%2d:%2d] : %d : ",
+      LOG_TRACE(": [%2d:%2d] : %d",
           i,
           i,
           blk_lvl_int->count[dev_id][i] - blk_lvl_int->count_shown[dev_id][i]);
       dump_field_name_by_offset((int)dev_id, blk_lvl_int->status_reg, i);
-      fprintf(rl_outstream, "\n");
       // update "shown"
       blk_lvl_int->count_shown[dev_id][i] = blk_lvl_int->count[dev_id][i];
     }
@@ -854,8 +845,7 @@ bf_status_t lld_tof2_dump_all_ints_cb(bf_dev_id_t dev_id,
   if (dump == 0) return BF_SUCCESS;
 
   char *path = get_full_reg_path_name(dev_id, blk_lvl_int->status_reg);
-  fprintf(rl_outstream,
-          "%08x : %08x : %08x : %08x : %p : %s\n",
+  LOG_TRACE("%08x : %08x : %08x : %08x : %p : %s",
           blk_lvl_int->status_reg,
           blk_lvl_int->enable_hi_reg,
           blk_lvl_int->enable_lo_reg,
@@ -865,13 +855,11 @@ bf_status_t lld_tof2_dump_all_ints_cb(bf_dev_id_t dev_id,
 
   for (i = 0; i < LLD_TOF2_COUNT_NUMB; i++) {
     if (blk_lvl_int->count[dev_id][i] != 0) {
-      fprintf(rl_outstream,
-              ": [%2d:%2d] : %d : ",
+      LOG_TRACE(": [%2d:%2d] : %d",
               i,
               i,
               blk_lvl_int->count[dev_id][i]);
       dump_field_name_by_offset((int)dev_id, blk_lvl_int->status_reg, i);
-      fprintf(rl_outstream, "\n");
       // update "shown"
       blk_lvl_int->count_shown[dev_id][i] = blk_lvl_int->count[dev_id][i];
     }
@@ -895,8 +883,7 @@ bf_status_t lld_tof2_dump_unfired_ints_cb(bf_dev_id_t dev_id,
   if (dump == 0) return BF_SUCCESS;
 
   char *path = get_full_reg_path_name(dev_id, blk_lvl_int->status_reg);
-  fprintf(rl_outstream,
-          "%08x : %08x : %08x : %08x : %p : %s\n",
+  LOG_TRACE("%08x : %08x : %08x : %08x : %p : %s",
           blk_lvl_int->status_reg,
           blk_lvl_int->enable_hi_reg,
           blk_lvl_int->enable_lo_reg,
@@ -910,13 +897,11 @@ bf_status_t lld_tof2_dump_unfired_ints_cb(bf_dev_id_t dev_id,
 
   for (i = 0; i < n_flds; i++) {
     if (blk_lvl_int->count[dev_id][i] == 0) {
-      fprintf(rl_outstream,
-              ": [%2d:%2d] : %d : ",
+      LOG_TRACE(": [%2d:%2d] : %d",
               i,
               i,
               blk_lvl_int->count[dev_id][i]);
       dump_field_name_by_offset((int)dev_id, blk_lvl_int->status_reg, i);
-      fprintf(rl_outstream, "\n");
     }
   }
   return BF_INVALID_ARG;

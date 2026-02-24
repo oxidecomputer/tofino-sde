@@ -55,9 +55,9 @@ function configure_build {
         # We only want to build the sidecar code on helios
         BSP=OFF
         LINKER_FLAGS=""
-	BOOST_ROOT=-DBOOST_ROOT=${SDE}/install
-        BOOST_DIR=${SDE}/install/include/boost/include
-        BOOST_STATIC=ON
+	BOOST_ROOT=""
+        BOOST_DIR=/usr/include
+        BOOST_STATIC=OFF
         CXX_FLAGS="-I${SDE}/oxide/rapidjson/include"
         C_FLAGS=""
 	export LD_LIBRARY_PATH=${SDE}/install/lib
@@ -78,6 +78,7 @@ function configure_build {
         -DASIC=ON  \
         -DTOFINO=OFF \
         -DTOFINO2=ON \
+        -DBUILD_MODEL=ON \
         -DBFRT=ON \
         -DBFRT-GENERIC-FLAGS=OFF \
         -DTHRIFT-DRIVER=OFF \

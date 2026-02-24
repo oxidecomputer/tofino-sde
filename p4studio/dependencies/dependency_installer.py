@@ -35,8 +35,8 @@ SOURCE_DEPENDENCIES_MANIFEST_CATEGORY = InstallDirCategory.DEPENDENCIES
 
 class DependencyInstaller:
     DEPENDENCIES_OF_DEPENDENCIES = {
-        'grpc': ['boost'],
-        'thrift': ['boost'],
+        'grpc': [],
+        'thrift': [],
     }
 
     def __init__(

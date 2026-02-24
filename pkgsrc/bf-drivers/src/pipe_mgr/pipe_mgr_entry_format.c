@@ -12785,8 +12785,146 @@ pipe_status_t pipe_mgr_ctxjson_tof_snapshot_capture_field_value_get(
     return PIPE_SUCCESS;
   }
 
+  /* Field is not in the PHV dictionary at this stage.  This is normal
+   * when the snapshot's end stage is the last stage where the field is
+   * live, because the decode uses the *next* stage's context.json
+   * PHV allocation.  Return success with field_valid=false so the
+   * caller can report the field as "not available" instead of failing
+   * the entire decode operation. */
   *field_valid = false;
-  return PIPE_INVALID_ARG;
+  return PIPE_SUCCESS;
+}
+
+/* Decode a named field from a snapshot capture into a byte buffer.
+ * Unlike the uint64_t variant above, this copies the full field value
+ * (up to out_len bytes) so it works for fields wider than 64 bits
+ * such as IPv6 addresses. */
+pipe_status_t pipe_mgr_ctxjson_tof_snapshot_capture_field_value_get_bytes(
+    bf_dev_id_t devid,
+    profile_id_t prof_id,
+    dev_stage_t stage,
+    int direction,
+    uint8_t *pd_capture,
+    uint8_t *pd_capture_v,
+    char *field_name,
+    uint8_t *out_value,
+    int out_len,
+    int *out_width,
+    bool *field_valid) {
+  pipe_status_t rc = PIPE_SUCCESS;
+  uint8_t *data_ptr = NULL;
+  pipemgr_tbl_pkg_lut_t *lut_ptr;
+  pipemgr_tbl_pkg_snapshot_t *snapshot_ptr;
+  pipemgr_tbl_pkg_snapshot_phv_t *phv_recs;
+  pipemgr_tbl_pkg_snapshot_pov_t *pov_hdrs;
+  uint32_t byteoffset, bj_hash, i, j;
+  char *fieldname, *povname, povfieldname[PIPE_SNAP_TRIG_FIELD_NAME_LEN];
+
+  if (!field_valid || !out_value || !out_width) {
+    return PIPE_INVALID_ARG;
+  }
+
+  *out_width = 0;
+  memset(out_value, 0, out_len);
+
+  bj_hash = bob_jenkin_hash_one_at_a_time(
+      PIPE_MGR_TBL_PKG_CTX(devid, prof_id).snapshot_lut_depth, 0, stage + 1, 0);
+  lut_ptr = pipemgr_entry_format_get_lut_entry(
+      bj_hash,
+      PIPE_MGR_TBL_PKG_CTX(devid, prof_id).snapshot_lut_depth,
+      PIPE_MGR_TBL_PKG_CTX(devid, prof_id).snapshot_lut,
+      0,
+      stage + 1);
+  if (!lut_ptr) {
+    LOG_ERROR("%s: Unable to find phv details from context json", __func__);
+    return (PIPE_INVALID_ARG);
+  }
+
+  snapshot_ptr = lut_ptr->u.snapshot_ptr;
+  phv_recs = snapshot_ptr->phv_recs;
+
+  /* We are looking for a particular field, as soon as we find that field
+   * copy out the data and set field_found to true to terminate the loop
+   * otherwise keep iterating until we find the primary record we are
+   * looking for. */
+  bool field_found = false;
+  for (i = 0; (i < snapshot_ptr->total_phv_recs) && !field_found; i++) {
+    if (phv_recs->direction != direction || phv_recs->pov_hdrs != NULL) {
+      phv_recs++;
+      continue;
+    }
+    fieldname = pipemgr_tbl_pkg_get_field_string_name(
+        devid, prof_id, phv_recs->phvname_str_index);
+    if (strncmp(fieldname, field_name, strlen(field_name)) != 0) {
+      phv_recs++;
+      continue;
+    }
+    /* Only use the record with field_lsb == 0 (the primary record) */
+    if (phv_recs->fieldlsb) {
+      phv_recs++;
+      continue;
+    }
+    rc = pipe_mgr_get_phv_field_byte_offset(
+        devid, prof_id, direction, fieldname, &byteoffset);
+    if (rc != PIPE_SUCCESS) {
+      PIPE_MGR_DBGCHK(0);
+      return PIPE_UNEXPECTED;
+    }
+    data_ptr = pd_capture + byteoffset;
+    field_found = true;
+    *out_width = phv_recs->fieldwidth;
+    int copy_len = phv_recs->fieldwidth;
+    if (copy_len > out_len) copy_len = out_len;
+    memcpy(out_value, data_ptr, copy_len);
+    phv_recs++;
+  }
+
+  /* POV (validity) bits */
+  phv_recs = snapshot_ptr->phv_recs;
+  for (i = 0; (i < snapshot_ptr->total_phv_recs) && !field_found; i++) {
+    if (phv_recs->direction != direction || phv_recs->pov_hdrs == NULL) {
+      phv_recs++;
+      continue;
+    }
+    pov_hdrs = phv_recs->pov_hdrs;
+    for (j = 0; (j < pov_hdrs->pov_bit_count) && !field_found; j++) {
+      if (pov_hdrs->hidden[j]) continue;
+      povname = pipemgr_tbl_pkg_get_field_string_name(
+          devid, prof_id, pov_hdrs->pov_hdr_str_index[j]);
+      snprintf(povfieldname, sizeof(povfieldname), "%s%s", povname, "_valid");
+      if (strncmp(povfieldname, field_name, strlen(field_name)) != 0) continue;
+      field_found = true;
+      rc = pipe_mgr_get_phv_field_byte_offset(
+          devid, prof_id, direction, povfieldname, &byteoffset);
+      if (rc != PIPE_SUCCESS) {
+        PIPE_MGR_DBGCHK(0);
+        return PIPE_UNEXPECTED;
+      }
+      data_ptr = pd_capture + byteoffset;
+      *out_width = 1;
+      out_value[0] = *data_ptr;
+    }
+    phv_recs++;
+  }
+
+  if (!field_found) {
+    /* Field is not in the PHV dictionary at this stage — see the
+     * comment in pipe_mgr_ctxjson_tof_snapshot_capture_field_value_get
+     * for an explanation of why this is not an error. */
+    *field_valid = false;
+    return PIPE_SUCCESS;
+  }
+
+  rmt_dev_info_t *dev_info = pipe_mgr_get_dev_info(devid);
+  if (!dev_info) {
+    LOG_ERROR("%s: Unable to use dev id %d", __func__, devid);
+    PIPE_MGR_DBGCHK(0);
+    return PIPE_UNEXPECTED;
+  }
+  *field_valid = is_field_valid(
+      dev_info, snapshot_ptr, prof_id, direction, field_name, pd_capture_v);
+
+  return PIPE_SUCCESS;
 }
 
 /* Copy fields from the PD trigger spec (value and mask) into the driver's field
