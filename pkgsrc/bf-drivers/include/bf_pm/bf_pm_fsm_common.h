@@ -27,13 +27,23 @@ typedef union {
  * Finite state machine types
  */
 typedef enum {
-	BF_FSM_PORT,
+	BF_FSM_PORT_DFE,
+	BF_FSM_PORT_AUTONEG,
+	BF_FSM_PORT_PRBS,
+	BF_FSM_PORT_PIPE_LOOPBACK,
+	BF_FSM_PORT_MAC_NEAR_LOOPBACK,
+	BF_FSM_PORT_MAC_FAR_LOOPBACK,
+	BF_FSM_PORT_PCS_LOOPBACK,
+	BF_FSM_PORT_SW_MODEL,
+	BF_FSM_PORT_TX_MODE,
+	BF_FSM_PORT_EMULATOR,
 	BF_FSM_MEDIA,
 	BF_FSM_QSFP,
-	BF_FSM_QSFP_CHANNEL
+	BF_FSM_QSFP_CHANNEL,
 } bf_fsm_type_t;
 
 #define BF_FSM_TYPE_MAX BF_FSM_QSFP_CHANNEL
+#define BF_FSM_TYPE_INVALID ((bf_fsm_type_t) -1)
 
 /*
  * per-link state machine, including autonegotiation and link-training
@@ -160,6 +170,7 @@ typedef enum {
 
 extern char *qsfp_fsm_ch_en_st_to_str[];
 
+#define BF_FSM_STATE_INVALID ((uint32_t)-1)
 /* Internal function called by the state machines during transitions */
 bf_status_t bf_pm_fsm_transition(bf_fsm_type_t which, bf_fsm_port_t port,
     uint32_t from, uint32_t to);

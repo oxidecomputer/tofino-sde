@@ -87,7 +87,8 @@ bf_status_t pm_port_fsm_mode_set(bf_dev_port_t dev_port,
 bf_pm_port_fsm_mode_t pm_port_fsm_mode_get(bf_dev_port_t dev_port);
 bf_status_t pm_port_tof2_prbs_stats_get(bf_dev_id_t dev_id,
                                         bf_dev_port_t dev_port,
-                                        bf_port_sds_prbs_stats_t *stats);
+                                        bf_port_sds_prbs_stats_t *stats,
+                                        uint32_t ms);
 bf_status_t pm_port_tof2_eye_val_get(bf_dev_id_t dev_id,
                                      bf_dev_port_t dev_port,
                                      bf_port_eye_val_t *eye);

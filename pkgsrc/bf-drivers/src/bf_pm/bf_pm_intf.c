@@ -11494,7 +11494,8 @@ bf_status_t bf_pm_actv_chnl_mask_set(bf_dev_id_t dev_id,
 
 bf_status_t bf_pm_port_prbs_mode_stats_get(bf_dev_id_t dev_id,
                                            bf_pal_front_port_handle_t *port_hdl,
-                                           bf_port_sds_prbs_stats_t *stats) {
+                                           bf_port_sds_prbs_stats_t *stats,
+                                           uint32_t ms) {
   bf_status_t sts = BF_SUCCESS;
   bf_dev_port_t dev_port;
   bf_pm_port_info_t *port_info;
@@ -11516,7 +11517,7 @@ bf_status_t bf_pm_port_prbs_mode_stats_get(bf_dev_id_t dev_id,
   pm_port_exclusive_access_start(dev_id, port_info);
   switch (dev_family) {
     case BF_DEV_FAMILY_TOFINO2:
-      sts = pm_port_tof2_prbs_stats_get(dev_id, dev_port, stats);
+      sts = pm_port_tof2_prbs_stats_get(dev_id, dev_port, stats, ms);
       if (sts != BF_SUCCESS) {
         PM_ERROR(
             "Unable to get prbs stats for dev : %d : front port : %d/%d : %s "

@@ -222,6 +222,7 @@ typedef enum {
   BF_PM_PORT_FSM_MODE_EMULATOR,
 } bf_pm_port_fsm_mode_t;
 
+bf_fsm_type_t bf_pm_fsm_to_type(bf_pm_fsm_t fsm);
 bf_pm_fsm_t bf_pm_fsm_handle_get(bf_pm_port_fsm_mode_t fsm_mode);
 bf_pm_fsm_t bf_pm_fsm_tof3_handle_get(bf_pm_port_fsm_mode_t fsm_mode);
 void bf_pm_fsm_display_get(bf_pm_fsm_t fsm,

@@ -1533,7 +1533,8 @@ bf_status_t bf_pm_port_prbs_mode_clear(
  */
 bf_status_t bf_pm_port_prbs_mode_stats_get(bf_dev_id_t dev_id,
                                            bf_pal_front_port_handle_t *port_hdl,
-                                           bf_port_sds_prbs_stats_t *stats);
+                                           bf_port_sds_prbs_stats_t *stats,
+                                           uint32_t ms);
 
 /**
  * @brief Get the eye-val on a port
