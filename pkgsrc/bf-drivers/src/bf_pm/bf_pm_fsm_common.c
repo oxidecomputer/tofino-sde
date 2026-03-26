@@ -7,7 +7,16 @@
 #include <bf_pm/pm_log.h>
 
 char *bf_pm_fsm_fsms[BF_FSM_TYPE_MAX + 1] = {
-	"PORT",
+	"PORT (DFE)",
+	"PORT (AUTONEG)",
+	"PORT (PRBS)",
+	"PORT (PIPE_LOOPBACK)",
+	"PORT (MAC_NEAR_LOOPBACK)",
+	"PORT (MAC_FAR_LOOPBACK)",
+	"PORT (PCS_LOOPBACK)",
+	"PORT (SW_MODEL)",
+	"PORT (TX_MODE)",
+	"PORT (EMULATOR)",
 	"MEDIA",
 	"QSFP",
 	"QSFP_CHANNEL"
@@ -137,27 +146,40 @@ bf_pm_fsm_transition(bf_fsm_type_t which, bf_fsm_port_t port,
 	char **state_names;
 	char port_name[32];
 	uint32_t asic_id;
+	bool channel_fsm = false;
 
 	switch (which) {
-	case BF_FSM_PORT:
+	case BF_FSM_PORT_DFE:
+	case BF_FSM_PORT_AUTONEG:
+	case BF_FSM_PORT_PRBS:
+	case BF_FSM_PORT_PIPE_LOOPBACK:
+	case BF_FSM_PORT_MAC_NEAR_LOOPBACK:
+	case BF_FSM_PORT_MAC_FAR_LOOPBACK:
+	case BF_FSM_PORT_PCS_LOOPBACK:
+	case BF_FSM_PORT_SW_MODEL:
+	case BF_FSM_PORT_TX_MODE:
+	case BF_FSM_PORT_EMULATOR:
 		max_state = BF_FSM_PORT_MAX;
 		state_names = bf_pm_fsm_st_to_str;
 		snprintf(port_name, sizeof (port_name), "ASIC_ID %d",
 		    port.asic_id);
 		break;
 	case BF_FSM_MEDIA:
+		channel_fsm = true;
 		max_state = BF_FSM_MEDIA_MAX;
 		state_names = pm_intf_fsm_st_to_str;
 		snprintf(port_name, sizeof (port_name), "PHYS %d:%d",
 		    port.port_id.connector, port.port_id.channel);
 		break;
 	case BF_FSM_QSFP:
+		channel_fsm = true;
 		max_state = BF_FSM_QSFP_MAX;
 		state_names = qsfp_fsm_st_to_str;
 		snprintf(port_name, sizeof (port_name), "PHYS %d:%d",
 		    port.port_id.connector, port.port_id.channel);
 		break;
 	case BF_FSM_QSFP_CHANNEL:
+		channel_fsm = true;
 		max_state = BF_FSM_QSFP_CHANNEL_MAX;
 		state_names = qsfp_fsm_ch_en_st_to_str;
 		snprintf(port_name, sizeof (port_name), "PHYS %d:%d",
@@ -183,7 +205,7 @@ bf_pm_fsm_transition(bf_fsm_type_t which, bf_fsm_port_t port,
 		return BF_SUCCESS;
 	}
 
-	if (which == BF_FSM_PORT) {
+	if (!channel_fsm) {
 		asic_id = port.asic_id;
 	} else {
 		bf_status_t rval;

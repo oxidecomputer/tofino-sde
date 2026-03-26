@@ -637,6 +637,7 @@ static int pm_dm_set_fsm(bf_dev_id_t dev_id,
                          bf_fsm_st fsm_cur_st) {
   pm_port_t *pm_port_p = pm_dm_find(dev_id, dev_port);
   bf_fsm_st fsm_old_st;
+  bf_fsm_type_t type;
 
   if (pm_port_p == NULL) return -1;
   if (!pm_port_p->added) return -2;
@@ -648,7 +649,8 @@ static int pm_dm_set_fsm(bf_dev_id_t dev_id,
   if (fsm_old_st != fsm_cur_st) {
 	  bf_fsm_port_t p;
 	  p.asic_id = dev_port;
-	  bf_pm_fsm_transition(BF_FSM_PORT, p, fsm_old_st, fsm_cur_st);
+	  type = bf_pm_fsm_to_type((bf_pm_fsm_t)fsm);
+	  bf_pm_fsm_transition(type, p, fsm_old_st, fsm_cur_st);
 	  port_mgr_fsm_actions(dev_id, dev_port, fsm_cur_st);
   }
 
@@ -2015,8 +2017,8 @@ void pm_port_fsm_display_info_get(bf_dev_id_t dev_id,
 
 bf_status_t pm_port_tof2_prbs_stats_get(bf_dev_id_t dev_id,
                                         bf_dev_port_t dev_port,
-                                        bf_port_sds_prbs_stats_t *stats) {
-  uint32_t integration_ms = 10;  // default 10ms
+                                        bf_port_sds_prbs_stats_t *stats,
+                                        uint32_t integration_ms) {
   int ln, num_lanes = bf_pm_fsm_num_lanes_get(dev_id, dev_port);
   uint32_t err_cnt = 0;
   bool added = false;

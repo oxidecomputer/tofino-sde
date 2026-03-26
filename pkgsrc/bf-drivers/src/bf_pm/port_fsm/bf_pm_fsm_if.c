@@ -443,6 +443,41 @@ bf_pm_fsm_t bf_pm_fsm_tof3_handle_get(bf_pm_port_fsm_mode_t fsm_mode) {
   return NULL;
 }
 
+bf_fsm_type_t bf_pm_fsm_to_type(bf_pm_fsm_t fsm) {
+  if ((fsm == bf_pm_get_fsm_for_dfe()) ||
+      (fsm == bf_pm_get_fsm_for_tof3_dfe())) {
+    return BF_FSM_PORT_DFE;
+  } else if ((fsm == bf_pm_get_fsm_for_autoneg()) ||
+             (fsm == bf_pm_get_fsm_for_tof3_autoneg())) {
+    return BF_FSM_PORT_AUTONEG;
+  } else if ((fsm == bf_pm_get_fsm_for_prbs()) ||
+             (fsm == bf_pm_get_fsm_for_tof3_prbs())) {
+    return BF_FSM_PORT_PRBS;
+  } else if ((fsm == bf_pm_get_fsm_for_pipe_loopback()) ||
+             (fsm == bf_pm_get_fsm_for_tof3_pipe_loopback())) {
+    return BF_FSM_PORT_PIPE_LOOPBACK;
+  } else if ((fsm == bf_pm_get_fsm_for_mac_loopback()) ||
+             (fsm == bf_pm_get_fsm_for_tof3_mac_loopback())) {
+    return BF_FSM_PORT_MAC_NEAR_LOOPBACK;
+  } else if ((fsm == bf_pm_get_fsm_for_mac_far_loopback()) ||
+             (fsm == bf_pm_get_fsm_for_tof3_mac_far_loopback())) {
+    return BF_FSM_PORT_MAC_FAR_LOOPBACK;
+  } else if ((fsm == bf_pm_get_fsm_for_pcs_loopback()) ||
+             (fsm == bf_pm_get_fsm_for_tof3_pcs_loopback())) {
+    return BF_FSM_PORT_PCS_LOOPBACK;
+  } else if ((fsm == bf_pm_get_fsm_for_sw_model()) ||
+             (fsm == bf_pm_get_fsm_for_tof3_sw_model())) {
+    return BF_FSM_PORT_SW_MODEL;
+  } else if ((fsm == bf_pm_get_fsm_for_tx_mode()) ||
+             (fsm == bf_pm_get_fsm_for_tof3_tx_mode())) {
+    return BF_FSM_PORT_TX_MODE;
+  } else if ((fsm == bf_pm_get_fsm_for_emulator()) ||
+             (fsm == bf_pm_get_fsm_for_tof3_emulator())) {
+    return BF_FSM_PORT_EMULATOR;
+  }
+  return BF_FSM_TYPE_INVALID;
+}
+
 /*****************************************************************************
  * bf_pm_fsm_handle_get
  *
