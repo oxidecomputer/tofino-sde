@@ -2944,6 +2944,8 @@ static uint32_t bf_switchd_get_max_subdev_id_cnt() {
   return max_subdev_id_cnt;
 }
 
+int check_for_interrupts = 1;
+
 static int bf_switchd_check_for_interrupts_or_timeout(
     fd_set *dev_fd_set_p, uint32_t timeout_value_us) {
   int err;
@@ -2954,6 +2956,13 @@ static int bf_switchd_check_for_interrupts_or_timeout(
   switchd_state_t *dev_state;
   static uint32_t max_subdev_id_cnt = 0;
 
+  FD_ZERO(dev_fd_set_p);
+
+  if (!check_for_interrupts) {
+    bf_sys_usleep(timeout_value_us);
+    return 0;
+  }
+
   if (max_subdev_id_cnt == 0) {
     max_subdev_id_cnt = bf_switchd_get_max_subdev_id_cnt();
   }
@@ -2963,8 +2972,6 @@ static int bf_switchd_check_for_interrupts_or_timeout(
     bf_sys_usleep(timeout_value_us);
     return 0;
   }
-
-  FD_ZERO(dev_fd_set_p);
 
   /* Initialize the device fd set to be used with select() */
   switchd_pcie_map_t *pcie_map;
