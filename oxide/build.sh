@@ -73,12 +73,6 @@ function configure_build {
 	    PATH=${PATH}:~/.local/bin:/usr/gnu/bin
     fi
 
-    # Disable the libev SIGCHLD handler which reaps all children
-    # unconditionally. We need both language flags, because the library is
-    # compiled as a pure C library, but the actual Tofino software that includes
-    # it is technically C++.
-    #EXTRA_FLAGS="-DEV_CHILD_ENABLE=0"
-
     cd ${SDE}/build
     cmake $SDE \
         -DASIC=ON  \
