@@ -16,6 +16,9 @@ set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/ConfigureChecks.cmake)
 
+if(DEFINED LIBEV_EV_CHILD_ENABLE)
+    add_compile_definitions(EV_CHILD_ENABLE=${LIBEV_EV_CHILD_ENABLE})
+endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third-party)

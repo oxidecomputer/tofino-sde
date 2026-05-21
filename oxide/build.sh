@@ -55,7 +55,7 @@ function configure_build {
         # We only want to build the sidecar code on helios
         BSP=OFF
         LINKER_FLAGS=""
-	BOOST_ROOT=""
+        BOOST_ROOT=""
         BOOST_DIR=/usr/include
         BOOST_STATIC=OFF
         CXX_FLAGS="-I${SDE}/oxide/rapidjson/include"
@@ -68,9 +68,9 @@ function configure_build {
         BOOST_STATIC=ON
         CXX_FLAGS="-D__EXTENSIONS__ -I${SDE}/oxide/rapidjson/include"
         C_FLAGS="-D__EXTENSIONS__ -D_POSIX_PTHREAD_SEMANTICS"
-	# To pick up realpath and the pip installed pyinstaller.
-	# XXX: this should be part of the CI controller, not here
-	PATH=${PATH}:~/.local/bin:/usr/gnu/bin
+        # To pick up realpath and the pip installed pyinstaller.
+        # XXX: this should be part of the CI controller, not here
+	    PATH=${PATH}:~/.local/bin:/usr/gnu/bin
     fi
 
     cd ${SDE}/build
@@ -95,15 +95,16 @@ function configure_build {
         -DRAPIDJSON_DIR=$RAPIDJSON_DIR/include \
         -DP4C_USE_PREINSTALLED_ABSEIL=ON \
         -DP4C_USE_PREINSTALLED_PROTOBUF=OFF \
-	${BOOST_ROOT} \
+        ${BOOST_ROOT} \
         -DBoost_INCLUDE_DIRS=${BOOST_DIR} \
-	-DBoost_USE_STATIC_RUNTIME=$BOOST_STATIC \
+        -DBoost_USE_STATIC_RUNTIME=$BOOST_STATIC \
         -DCMAKE_BUILD_TYPE='Release' \
         -DCMAKE_LINKER='lld' \
         -DCMAKE_INSTALL_PREFIX=$SDE/install \
         -DCMAKE_CXX_FLAGS="$CXX_FLAGS" \
         -DCMAKE_EXE_LINKER_FLAGS="$LINKER_FLAGS" \
-        -DCMAKE_C_FLAGS="$C_FLAGS"
+        -DCMAKE_C_FLAGS="$C_FLAGS" \
+        -DLIBEV_EV_CHILD_ENABLE=0
 }
 
 function build {
