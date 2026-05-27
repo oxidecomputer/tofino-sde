@@ -2954,8 +2954,6 @@ static int bf_switchd_check_for_interrupts_or_timeout(
   switchd_state_t *dev_state;
   static uint32_t max_subdev_id_cnt = 0;
 
-  FD_ZERO(dev_fd_set_p);
-
   if (max_subdev_id_cnt == 0) {
     max_subdev_id_cnt = bf_switchd_get_max_subdev_id_cnt();
   }
@@ -2965,6 +2963,8 @@ static int bf_switchd_check_for_interrupts_or_timeout(
     bf_sys_usleep(timeout_value_us);
     return 0;
   }
+
+  FD_ZERO(dev_fd_set_p);
 
   /* Initialize the device fd set to be used with select() */
   switchd_pcie_map_t *pcie_map;
@@ -4616,7 +4616,6 @@ static void *bf_switchd_process_async_dma_notifs(void *arg) {
   return NULL;
 }
 
-int check_for_interrupts = 1;
 /* Routine to process async updates from HW (Interrupts)
  * Note that if and when interrupts are enabled for certain DRs,
  * the above routine has to stop processing those DRs and the relevant
@@ -4627,16 +4626,10 @@ static void *bf_switchd_process_async_int_notifs(void *arg) {
   bf_dev_id_t dev_id = 0;
   fd_set dev_fd_set;
   switchd_state_t *dev_state;
-  uint32_t timeout_value_us = 100;
 
   /* Device interrupt processing loop */
   while (1) {
-    if (!check_for_interrupts) {
-      bf_switchd_check_for_interrupts_or_timeout(&dev_fd_set, timeout_value_us);
-    } else {
-      bf_sys_usleep(timeout_value_us);
-      continue;
-    }
+    bf_switchd_check_for_interrupts_or_timeout(&dev_fd_set, 100);
 
     for (dev_id = 0; dev_id < BF_MAX_DEV_COUNT; dev_id++) {
       dev_state = &(switchd_ctx->state[dev_id]);
@@ -5154,7 +5147,8 @@ static int bf_switchd_driver_init(bool kernel_pkt_proc) {
   pthread_attr_t int_t_attr;
   pthread_attr_init(&int_t_attr);
   bf_dev_id_t dev_id = 0;
-  if (switchd_ctx->asic[dev_id].is_sw_model == false) {
+  if ((switchd_ctx->asic[dev_id].is_sw_model == false)  &&
+      !switchd_ctx->args.skip_interrupt_thread) {
     if ((ret = pthread_create(&switchd_ctx->args.int_t_id,
                               &int_t_attr,
                               bf_switchd_process_async_int_notifs,
@@ -5167,6 +5161,11 @@ static int bf_switchd_driver_init(bool kernel_pkt_proc) {
       return ret;
     }
     pthread_setname_np(switchd_ctx->args.int_t_id, "bf_interrupt");
+  } else {
+      bf_sys_log_and_trace(
+          BF_MOD_SWITCHD,
+          BF_LOG_INFO,
+          "interrupt handling service disabled");
   }
 
   /* Start a thread to handle asynchronous DMA notifications for packet I/O over
