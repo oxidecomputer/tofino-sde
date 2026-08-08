@@ -9,6 +9,8 @@ else
     export ILLUMOS=0
 fi
 
+export PATH=${PATH}:~/.local/bin
+
 function get_firmware() {
     FW_DIR=${SDE}/install/share/tofino_sds_fw/credo
     mkdir -p $FW_DIR
@@ -60,7 +62,19 @@ function configure_build {
         BOOST_STATIC=OFF
         CXX_FLAGS="-I${SDE}/oxide/rapidjson/include"
         C_FLAGS=""
-	export LD_LIBRARY_PATH=${SDE}/install/lib
+	    export LD_LIBRARY_PATH=${SDE}/install/lib
+
+        # Use a known-working toolchain unless told otherwise.
+        #
+        # Linux builds more code than Illumos and benefits from the
+        # more forgiving gcc-11.
+        if [ -z "$CC" ]; then
+            export CC="gcc-11"
+        fi
+
+        if [ -z "$CXX" ]; then
+            export CXX="g++-11"
+        fi
     else
         BSP=ON
         LINKER_FLAGS="-lnsl -lsocket"
@@ -68,9 +82,15 @@ function configure_build {
         BOOST_STATIC=ON
         CXX_FLAGS="-D__EXTENSIONS__ -I${SDE}/oxide/rapidjson/include"
         C_FLAGS="-D__EXTENSIONS__ -D_POSIX_PTHREAD_SEMANTICS"
-        # To pick up realpath and the pip installed pyinstaller.
-        # XXX: this should be part of the CI controller, not here
-	    PATH=${PATH}:~/.local/bin:/usr/gnu/bin
+        PATH=${PATH}:/usr/gnu/bin
+
+        if [ -z "$CC" ]; then
+            export CC="gcc-12"
+        fi
+
+        if [ -z "$CXX" ]; then
+            export CXX="g++-12"
+        fi
     fi
 
     cd ${SDE}/build

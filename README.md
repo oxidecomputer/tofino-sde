@@ -10,6 +10,7 @@ this fork you should simply run:
 
 ```
 tofino-sde$ export SDE=`pwd`
+tofino-sde$ ./oxide/install-dependencies.sh
 tofino-sde$ ./oxide/build.sh
 [lots of output]
 tofino-sde$ ./oxide/package.sh
