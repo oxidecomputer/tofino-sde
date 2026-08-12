@@ -59,7 +59,7 @@ function configure_build {
         LINKER_FLAGS=""
         BOOST_ROOT=""
         BOOST_DIR=/usr/include
-        BOOST_STATIC=OFF
+        BOOST_STATIC_RUNTIME='OFF'
         CXX_FLAGS="-I${SDE}/oxide/rapidjson/include"
         C_FLAGS=""
 	    export LD_LIBRARY_PATH=${SDE}/install/lib
@@ -79,7 +79,7 @@ function configure_build {
         BSP=ON
         LINKER_FLAGS="-lnsl -lsocket"
         BOOST_DIR=/opt/ooce/boost/include
-        BOOST_STATIC=ON
+        BOOST_STATIC_RUNTIME='ON'
         CXX_FLAGS="-D__EXTENSIONS__ -I${SDE}/oxide/rapidjson/include"
         C_FLAGS="-D__EXTENSIONS__ -D_POSIX_PTHREAD_SEMANTICS"
         PATH=${PATH}:/usr/gnu/bin
@@ -117,7 +117,8 @@ function configure_build {
         -DP4C_USE_PREINSTALLED_PROTOBUF=OFF \
         ${BOOST_ROOT} \
         -DBoost_INCLUDE_DIRS=${BOOST_DIR} \
-        -DBoost_USE_STATIC_RUNTIME=$BOOST_STATIC \
+        -DBoost_USE_STATIC_RUNTIME=${BOOST_STATIC_RUNTIME} \
+        -DBoost_USE_STATIC_LIBS='ON' \
         -DCMAKE_BUILD_TYPE='Release' \
         -DCMAKE_LINKER='lld' \
         -DCMAKE_INSTALL_PREFIX=$SDE/install \
