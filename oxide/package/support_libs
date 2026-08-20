@@ -47,4 +47,3 @@ libabsl_synchronization.so.2308.0.0
 libabsl_throw_delegate.so.2308.0.0
 libabsl_time.so.2308.0.0
 libabsl_time_zone.so.2308.0.0
-# System libboost-all-dev (1.74+) is used instead of vendored boost.

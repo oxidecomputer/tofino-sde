@@ -67,6 +67,8 @@ function configure_build {
         #
         # Linux builds more code than Illumos and benefits from the
         # more forgiving gcc-11.
+        #
+        # https://github.com/oxidecomputer/tofino-sde/issues/20
         if [ -z "$CC" ]; then
             export CC="gcc-11"
         fi
@@ -138,7 +140,7 @@ function build {
 
 
 function usage() {
-    printf "%s [-h] [-v <version>] [-j <jobs>]\n" "$0"
+    printf "%s [-h] [-j <jobs>]\n" "$0"
     printf "    -h \tThis message\n"
     printf "    -j \tTell (g)make how many jobs to spawn\n"
 }
@@ -149,7 +151,7 @@ echo Building SDE at git root: "$SDE"
 mkdir "$SDE"/build || echo "$SDE"/build already exists
 
 export JOBS=8
-while getopts hs:j:v: opt; do
+while getopts hj: opt; do
     if [ "$opt" == "h" ]; then
         usage "$0"
         exit 0
