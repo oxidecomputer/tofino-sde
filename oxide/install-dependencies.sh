@@ -5,7 +5,7 @@ set -ex
 # https://github.com/pyinstaller/pyinstaller/issues/9280
 PYINSTALLER_VERSION="pyinstaller>=6.17"
 
-if [ "$(uname -s)" = SunOS ]; then
+if [ "$(uname -s)" == SunOS ]; then
     # Packages currently pre-built on s3. Ideally this will be part of the
     # helios repo so they can be "pkg install"ed.
     wget -O /tmp/tofino_deps.p5p https://oxide-tofino-build.s3.us-west-2.amazonaws.com/tofino_deps.p5p
