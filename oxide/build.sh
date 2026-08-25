@@ -3,22 +3,24 @@
 set -e
 set -x
 
-if [ `uname -s` == SunOS ]; then
+if [ "$(uname -s)" == SunOS ]; then
     export ILLUMOS=1
 else
     export ILLUMOS=0
 fi
 
+export PATH=${PATH}:~/.local/bin
+
 function get_firmware() {
     FW_DIR=${SDE}/install/share/tofino_sds_fw/credo
-    mkdir -p $FW_DIR
+    mkdir -p "$FW_DIR"
     wget -P /tmp https://oxide-tofino-build.s3.us-west-2.amazonaws.com/serdes_fw.tar.gz
-    (cd $FW_DIR ; tar xvfz /tmp/serdes_fw.tar.gz)
+    (cd "$FW_DIR" ; tar xvfz /tmp/serdes_fw.tar.gz)
 }
 
 function patch_abseil() {
     (
-        cd ${SDE}/install/include/absl/container/internal/
+        cd "$SDE"/install/include/absl/container/internal/
 	# if layout.h hasn't already been patched, do it now.
         grep -q "std::free" layout.h || cat << EOF | patch -p1 layout.h
 --- layout.h.orig	2025-02-20 21:52:10.936645134 +0000
@@ -39,14 +41,14 @@ EOF
 function prework() {
     if [ $ILLUMOS -eq 1 ]; then
         echo Wrapping wrap_libport_mgr_hw
-        (cd ${SDE}/oxide/wrap_libport_mgr_hw ; gmake clean; gmake install)
+        (cd "$SDE"/oxide/wrap_libport_mgr_hw ; gmake clean; gmake install)
     else
         patch_abseil
     fi
 
     RAPIDJSON_DIR=${SDE}/oxide/rapidjson
-    if [ ! -d $RAPIDJSON_DIR ]; then
-        (cd ${SDE}/oxide ; git clone https://github.com/Tencent/rapidjson.git)
+    if [ ! -d "$RAPIDJSON_DIR" ]; then
+        (cd "$SDE"/oxide ; git clone https://github.com/Tencent/rapidjson.git)
     fi
 }
 
@@ -55,26 +57,45 @@ function configure_build {
         # We only want to build the sidecar code on helios
         BSP=OFF
         LINKER_FLAGS=""
-        BOOST_ROOT=""
         BOOST_DIR=/usr/include
-        BOOST_STATIC=OFF
+        BOOST_STATIC_RUNTIME='OFF'
         CXX_FLAGS="-I${SDE}/oxide/rapidjson/include"
         C_FLAGS=""
-	export LD_LIBRARY_PATH=${SDE}/install/lib
+	    export LD_LIBRARY_PATH=${SDE}/install/lib
+
+        # Use a known-working toolchain unless told otherwise.
+        #
+        # Linux builds more code than Illumos and benefits from the
+        # more forgiving gcc-11.
+        #
+        # https://github.com/oxidecomputer/tofino-sde/issues/20
+        if [ -z "$CC" ]; then
+            export CC="gcc-11"
+        fi
+
+        if [ -z "$CXX" ]; then
+            export CXX="g++-11"
+        fi
     else
         BSP=ON
         LINKER_FLAGS="-lnsl -lsocket"
         BOOST_DIR=/opt/ooce/boost/include
-        BOOST_STATIC=ON
+        BOOST_STATIC_RUNTIME='ON'
         CXX_FLAGS="-D__EXTENSIONS__ -I${SDE}/oxide/rapidjson/include"
         C_FLAGS="-D__EXTENSIONS__ -D_POSIX_PTHREAD_SEMANTICS"
-        # To pick up realpath and the pip installed pyinstaller.
-        # XXX: this should be part of the CI controller, not here
-	    PATH=${PATH}:~/.local/bin:/usr/gnu/bin
+        PATH=${PATH}:/usr/gnu/bin
+
+        if [ -z "$CC" ]; then
+            export CC="gcc-12"
+        fi
+
+        if [ -z "$CXX" ]; then
+            export CXX="g++-12"
+        fi
     fi
 
-    cd ${SDE}/build
-    cmake $SDE \
+    cd "$SDE"/build
+    cmake "$SDE" \
         -DASIC=ON  \
         -DTOFINO=OFF \
         -DTOFINO2=ON \
@@ -92,15 +113,15 @@ function configure_build {
         -DBF-PYTHON=OFF \
         -DKERNEL-MODULES=OFF \
         -DBSP=$BSP \
-        -DRAPIDJSON_DIR=$RAPIDJSON_DIR/include \
+        -DRAPIDJSON_DIR="$RAPIDJSON_DIR"/include \
         -DP4C_USE_PREINSTALLED_ABSEIL=ON \
         -DP4C_USE_PREINSTALLED_PROTOBUF=OFF \
-        ${BOOST_ROOT} \
         -DBoost_INCLUDE_DIRS=${BOOST_DIR} \
-        -DBoost_USE_STATIC_RUNTIME=$BOOST_STATIC \
+        -DBoost_USE_STATIC_RUNTIME=${BOOST_STATIC_RUNTIME} \
+        -DBoost_USE_STATIC_LIBS='ON' \
         -DCMAKE_BUILD_TYPE='Release' \
         -DCMAKE_LINKER='lld' \
-        -DCMAKE_INSTALL_PREFIX=$SDE/install \
+        -DCMAKE_INSTALL_PREFIX="$SDE"/install \
         -DCMAKE_CXX_FLAGS="$CXX_FLAGS" \
         -DCMAKE_EXE_LINKER_FLAGS="$LINKER_FLAGS" \
         -DCMAKE_C_FLAGS="$C_FLAGS" \
@@ -108,35 +129,36 @@ function configure_build {
 }
 
 function build {
-    cd $SDE/build
-    gmake -j ${JOBS} install
+    cd "$SDE"/build
+    gmake -j "$JOBS" install
     if [ $ILLUMOS -eq 1 ]; then
 	get_firmware
     else
-        (cd ${SDE}/oxide/remote_model ; make install)
+        (cd "$SDE"/oxide/remote_model ; make install)
     fi
 }
 
 
 function usage() {
-    printf "$0 [-h] [-v <version>] [-j <jobs>]\n"
+    printf "%s [-h] [-j <jobs>]\n" "$0"
     printf "    -h \tThis message\n"
     printf "    -j \tTell (g)make how many jobs to spawn\n"
 }
 
-export SDE=`git rev-parse --show-toplevel`
-echo Building SDE at git root: ${SDE}
-mkdir ${SDE}/build || echo ${SDE}/build already exists
+export SDE
+SDE=$(git rev-parse --show-toplevel)
+echo Building SDE at git root: "$SDE"
+mkdir "$SDE"/build || echo "$SDE"/build already exists
 
 export JOBS=8
-while getopts hs:j:v: opt; do
-    if [ $opt == "h" ]; then
-        usage $0
+while getopts hj: opt; do
+    if [ "$opt" == "h" ]; then
+        usage "$0"
         exit 0
-    elif [ $opt == "j" ]; then
+    elif [ "$opt" == "j" ]; then
         JOBS=$OPTARG
     else
-        usage $0
+        usage "$0"
         exit 1
     fi
 done
