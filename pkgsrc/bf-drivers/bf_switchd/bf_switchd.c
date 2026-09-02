@@ -5147,7 +5147,8 @@ static int bf_switchd_driver_init(bool kernel_pkt_proc) {
   pthread_attr_t int_t_attr;
   pthread_attr_init(&int_t_attr);
   bf_dev_id_t dev_id = 0;
-  if (switchd_ctx->asic[dev_id].is_sw_model == false) {
+  if ((switchd_ctx->asic[dev_id].is_sw_model == false)  &&
+      !switchd_ctx->args.skip_interrupt_thread) {
     if ((ret = pthread_create(&switchd_ctx->args.int_t_id,
                               &int_t_attr,
                               bf_switchd_process_async_int_notifs,
@@ -5160,6 +5161,11 @@ static int bf_switchd_driver_init(bool kernel_pkt_proc) {
       return ret;
     }
     pthread_setname_np(switchd_ctx->args.int_t_id, "bf_interrupt");
+  } else {
+      bf_sys_log_and_trace(
+          BF_MOD_SWITCHD,
+          BF_LOG_INFO,
+          "interrupt handling service disabled");
   }
 
   /* Start a thread to handle asynchronous DMA notifications for packet I/O over

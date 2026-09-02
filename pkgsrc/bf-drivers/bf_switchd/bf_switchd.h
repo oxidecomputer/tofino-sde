@@ -248,6 +248,10 @@ typedef struct bf_switchd_context_s {
    */
   bool skip_dma_thread;
 
+  /* When true the thread which polls for interrupts will not be started.
+   */
+  bool skip_interrupt_thread;
+
   /* For low level debug only!  Bypass the initialization of various low level
    * SDE driver components, not to be used during normal switch operation. */
   switchd_skip_hld_t skip_hld;
